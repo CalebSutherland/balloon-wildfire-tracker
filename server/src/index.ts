@@ -6,17 +6,18 @@ const PORT = 5000;
 
 app.use(cors());
 
-app.get("/api/treasure", async (_req: Request, res: Response) => {
-  try {
-    const response = await fetch(
-      "https://a.windbornesystems.com/treasure/00.json"
-    );
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch treasure data" });
-  }
+const balloons: Record<string, number[][]> = {};
+
+for (let i = 0; i < 24; i++) {
+  const hour = String(i).padStart(2, "0");
+  const res = await fetch(
+    `https://a.windbornesystems.com/treasure/${hour}.json`
+  );
+  balloons[hour] = await res.json();
+}
+
+app.get("/api/treasure", (_req, res) => {
+  res.json(balloons);
 });
 
 app.listen(PORT, () => {

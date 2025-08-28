@@ -1,5 +1,4 @@
 import "./App.css";
-import Leaflet from "./components/leaflet";
 import Map from "./components/map";
 
 function App() {
