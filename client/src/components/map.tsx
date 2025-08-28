@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -6,6 +6,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+
+  const [points, setPoints] = useState<number[][]>([]);
 
   useEffect(() => {
     const container = mapContainerRef.current;
@@ -19,15 +21,29 @@ export default function Map() {
       zoom: 9, // starting zoom
     });
 
-    const marker = new mapboxgl.Marker({ color: "red" })
-      .setLngLat([-74.5, 40]) // [longitude, latitude]
-      .setPopup(new mapboxgl.Popup().setText("Hello, this is a marker!")) // optional popup
-      .addTo(mapRef.current);
-
     return () => {
       mapRef.current?.remove();
     };
   }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/treasure")
+      .then((res) => res.json())
+      .then((data) => {
+        setPoints(data);
+      })
+      .catch((err) => console.error("Error fetching:", err));
+  }, []);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    points.forEach(([lat, lng, _alt]) => {
+      new mapboxgl.Marker()
+        .setLngLat([lng, lat]) // Mapbox expects [lng, lat]
+        .addTo(mapRef.current!);
+    });
+  }, [points]);
 
   return (
     <div
