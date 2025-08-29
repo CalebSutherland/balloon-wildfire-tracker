@@ -19,11 +19,11 @@ export default function Map() {
   const [points, setPoints] = useState<number[][]>([]);
   const [hour, setHour] = useState("00");
   const [playing, setPlaying] = useState(false);
+  const [following, setFollowing] = useState(false);
 
-  const hourRef = useRef(hour);
   const balloonsRef = useRef(balloons);
   const selectedBalloonRef = useRef<mapboxgl.TargetFeature | null>(null);
-  const playingRef = useRef(false);
+  const hourRef = useRef(hour);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -149,10 +149,6 @@ export default function Map() {
   }, []);
 
   useEffect(() => {
-    hourRef.current = hour;
-  }, [hour]);
-
-  useEffect(() => {
     balloonsRef.current = balloons;
   }, [balloons]);
 
@@ -161,8 +157,8 @@ export default function Map() {
   }, [selectedBalloon]);
 
   useEffect(() => {
-    playingRef.current = playing;
-  }, [playing]);
+    hourRef.current = hour;
+  }, [hour]);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/treasure")
@@ -191,7 +187,7 @@ export default function Map() {
         type: "Feature",
         id: i,
         geometry: { type: "Point", coordinates: [lon, lat, alt] },
-        properties: { index: i.toString(), lon: lon, lat: lat, alt: alt },
+        properties: { index: i.toString() },
       })),
     };
 
@@ -202,19 +198,32 @@ export default function Map() {
   useEffect(() => {
     if (!playing) return;
 
-    if (playing && popupRef.current) {
-      popupRef.current.remove();
-    }
+    let currentHour = parseInt(hourRef.current);
 
     const interval = setInterval(() => {
-      setHour((prev) => {
-        const nextHour = (parseInt(prev) + 1) % 24;
-        return String(nextHour).padStart(2, "0");
-      });
+      // Update the hour if playing
+      currentHour = (currentHour + 1) % 24;
+      const hourString = String(currentHour).padStart(2, "0");
+      setHour(hourString);
+      hourRef.current = hourString;
+
+      // Move the camera if following a balloon
+      if (following && selectedBalloonIndex !== null) {
+        const coords = balloons[hourString]?.[selectedBalloonIndex];
+        if (coords) {
+          mapRef.current!.easeTo({
+            center: [coords[1], coords[0]],
+            duration: 500,
+          });
+        } else {
+          // Stop following if no coordinates
+          setFollowing(false);
+        }
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [playing]);
+  }, [playing, following, selectedBalloonIndex, balloons]);
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
@@ -232,7 +241,6 @@ export default function Map() {
         <button
           onClick={() => {
             setPlaying(!playing);
-            playingRef.current = !playing;
           }}
           style={{ marginLeft: 10 }}
         >
@@ -264,7 +272,7 @@ export default function Map() {
               borderRadius: "3px",
             }}
           >
-            <code>Balloon {selectedBalloonIndex}</code>
+            <b>Balloon {selectedBalloonIndex}</b>
             <hr />
             <li>
               <b>Lat</b>: {balloons[hour][selectedBalloonIndex][0].toFixed(2)}
@@ -275,6 +283,13 @@ export default function Map() {
             <li>
               <b>Alt</b>: {balloons[hour][selectedBalloonIndex][2].toFixed(2)}
             </li>
+            <button
+              onClick={() => {
+                setFollowing(!following);
+              }}
+            >
+              {following ? "Stop Following" : "Follow this balloon!"}
+            </button>
           </div>
         )}
       </div>
