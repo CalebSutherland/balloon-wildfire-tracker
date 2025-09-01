@@ -1,17 +1,23 @@
+import type { BalloonPoint } from "../types/types";
+
 interface BalloonOverlayProps {
-  balloons: Record<string, number[][]>;
+  balloons: Record<string, BalloonPoint[]>;
   hour: string;
   selectedBalloonIndex: number | null;
+  tracking: boolean;
+  handleTracking: () => void;
 }
 
 export function BalloonOverlay({
   balloons,
   hour,
   selectedBalloonIndex,
+  tracking,
+  handleTracking,
 }: BalloonOverlayProps) {
   if (selectedBalloonIndex == null) return null;
 
-  const [lat, lon, alt] = balloons[hour][selectedBalloonIndex];
+  const currentBalloon = balloons[hour][selectedBalloonIndex];
 
   return (
     <div
@@ -42,15 +48,17 @@ export function BalloonOverlay({
         <b>Balloon {selectedBalloonIndex}</b>
         <hr />
         <li>
-          <b>Lat</b>: {lat.toFixed(2)}
+          <b>Lat</b>: {currentBalloon.lat.toFixed(2)}
         </li>
         <li>
-          <b>Lon</b>: {lon.toFixed(2)}
+          <b>Lon</b>: {currentBalloon.lon.toFixed(2)}
         </li>
         <li>
-          <b>Alt</b>: {alt.toFixed(2)}
+          <b>Alt</b>: {currentBalloon.alt.toFixed(2)}
         </li>
-        <button>Track this balloon!</button>
+        <button onClick={handleTracking}>
+          {tracking ? "Stop tracking" : "Track this balloon!"}
+        </button>
       </div>
     </div>
   );

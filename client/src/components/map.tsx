@@ -1,45 +1,59 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import { useMap } from "../hooks/use-map";
 import { useBalloons } from "../hooks/use-balloons";
 import { Controls } from "./controls";
 import { BalloonOverlay } from "./balloon-overlay";
+import type { BalloonPoint } from "../types/types";
 
 export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const {
-    balloons,
-    points,
-    hour,
-    hourRef,
-    setHour,
-    playing,
-    setPlaying,
-    selectedBalloonRef,
-    selectedBalloon,
-    setSelectedBalloon,
-  } = useBalloons();
+  const [playing, setPlaying] = useState(false);
+  const [tracking, setTracking] = useState(false);
+  const [points, setPoints] = useState<BalloonPoint[]>([]);
+  const [hour, setHour] = useState("00");
+  const hourRef = useRef(hour);
+
+  const { balloons, selectedBalloonRef, selectedBalloon, setSelectedBalloon } =
+    useBalloons(setPoints, hour);
 
   const selectedBalloonIndex =
     parseInt(String(selectedBalloon?.properties.index)) || null;
+
+  useEffect(() => {
+    console.log(selectedBalloonIndex);
+  }, [selectedBalloonIndex]);
 
   const { map, mapLoaded } = useMap(mapContainerRef, {
     selectedBalloonRef,
     setSelectedBalloon,
   });
 
+  const handleTracking = () => {
+    if (selectedBalloonIndex === null) return;
+
+    if (!tracking) {
+      const selected = balloons[hourRef.current][selectedBalloonIndex];
+      setPoints([selected]);
+      setTracking(true);
+    } else {
+      setPoints(balloons[hourRef.current]);
+      setTracking(false);
+    }
+  };
+
   // When points update, update the map
   useEffect(() => {
-    if (!mapLoaded) return;
+    if (!mapLoaded || !points) return;
     const source = map.current!.getSource("points") as mapboxgl.GeoJSONSource;
     source.setData({
       type: "FeatureCollection",
-      features: points.map(([lat, lon, alt], i) => ({
+      features: points.map(({ lat, lon, alt, index }) => ({
         type: "Feature",
-        id: i,
+        id: index,
         geometry: { type: "Point", coordinates: [lon, lat, alt] },
-        properties: { index: i.toString() },
+        properties: { index, lat, lon, alt },
       })),
     });
   }, [mapLoaded, points]);
@@ -50,18 +64,23 @@ export default function Map() {
     let currentHour = parseInt(hourRef.current);
 
     const interval = setInterval(() => {
-      // Update the hour if playing
       currentHour = (currentHour - 1 + 24) % 24;
       const hourString = String(currentHour).padStart(2, "0");
       setHour(hourString);
       hourRef.current = hourString;
+
+      if (tracking) {
+        setPoints([balloons[hourRef.current][selectedBalloonIndex!]]);
+      } else {
+        setPoints(balloons[hourRef.current]);
+      }
 
       // Move the camera if following a balloon
       if (selectedBalloonIndex !== null) {
         const coords = balloons[hourString]?.[selectedBalloonIndex];
         if (coords) {
           map.current!.easeTo({
-            center: [coords[1], coords[0]],
+            center: [coords.lon, coords.lat],
             duration: 250,
           });
         }
@@ -69,7 +88,13 @@ export default function Map() {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [playing, selectedBalloonIndex, balloons]);
+  }, [playing, selectedBalloonIndex, balloons, tracking]);
+
+  useEffect(() => {
+    if (tracking && selectedBalloon === null) {
+      setTracking(false);
+    }
+  }, [selectedBalloonIndex]);
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
@@ -78,6 +103,8 @@ export default function Map() {
         setHour={setHour}
         playing={playing}
         setPlaying={setPlaying}
+        balloons={balloons}
+        setPoints={setPoints}
       />
 
       <div ref={mapContainerRef} style={{ height: "100%", width: "100%" }} />
@@ -85,6 +112,8 @@ export default function Map() {
         balloons={balloons}
         hour={hour}
         selectedBalloonIndex={selectedBalloonIndex}
+        tracking={tracking}
+        handleTracking={handleTracking}
       />
     </div>
   );
