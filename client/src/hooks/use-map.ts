@@ -55,23 +55,25 @@ export function useMap(
             16,
             12,
           ],
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#ffffff",
         },
       });
 
-      map.addLayer({
-        id: "points-label",
-        type: "symbol",
-        source: "points",
-        layout: {
-          "text-field": ["get", "index"],
-          "text-size": 10,
-          "text-anchor": "center",
-          "text-allow-overlap": true,
-        },
-        paint: {
-          "text-color": "#fff",
-        },
-      });
+      // map.addLayer({
+      //   id: "points-label",
+      //   type: "symbol",
+      //   source: "points",
+      //   layout: {
+      //     "text-field": ["get", "index"],
+      //     "text-size": 10,
+      //     "text-anchor": "center",
+      //     "text-allow-overlap": true,
+      //   },
+      //   paint: {
+      //     "text-color": "#fff",
+      //   },
+      // });
 
       map.addInteraction("click", {
         type: "click",

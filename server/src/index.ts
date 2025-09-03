@@ -14,6 +14,7 @@ for (let i = 0; i < 24; i++) {
     `https://a.windbornesystems.com/treasure/${hour}.json`
   );
   balloons[hour] = await res.json();
+  console.log(balloons[hour]?.length);
 }
 
 app.get("/api/treasure", (_req, res) => {

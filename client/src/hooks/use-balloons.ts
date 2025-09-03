@@ -22,6 +22,7 @@ export function useBalloons(
             alt,
             index: i,
           }));
+          console.log(objData[h][833]);
         }
         setBalloons(objData);
         setPoints(objData[hour]);
