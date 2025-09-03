@@ -4,3 +4,5 @@ export type BalloonPoint = {
   alt: number;
   index: number;
 };
+
+export type FC = GeoJSON.FeatureCollection<GeoJSON.Point>;
