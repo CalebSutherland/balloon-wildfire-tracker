@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { BalloonPoint } from "../types/types";
 
-export function useBalloons(
-  setPoints: (p: BalloonPoint[]) => void,
-  hour: string
-) {
+export function useBalloons() {
   const [balloons, setBalloons] = useState<Record<string, BalloonPoint[]>>({});
   const [selectedBalloon, setSelectedBalloon] =
     useState<mapboxgl.TargetFeature | null>(null);
@@ -25,7 +22,6 @@ export function useBalloons(
           console.log(objData[h][833]);
         }
         setBalloons(objData);
-        setPoints(objData[hour]);
       })
       .catch(console.error);
   }, []);
