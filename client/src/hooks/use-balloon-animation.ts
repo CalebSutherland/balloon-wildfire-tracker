@@ -63,9 +63,9 @@ export function useBalloonAnimation({
 
   // Initialize with first hour data
   const initializeMap = useCallback(() => {
-    if (!balloons?.["00"] || !map.current) return;
+    if (!balloons || !map.current) return;
 
-    const firstHour = balloons["00"];
+    const firstHour = balloons["23"];
     const features: GeoJSON.Feature<GeoJSON.Point>[] = firstHour.map((b) => ({
       type: "Feature",
       id: b.index,

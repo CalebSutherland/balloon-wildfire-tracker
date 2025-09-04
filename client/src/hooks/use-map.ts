@@ -28,6 +28,21 @@ export function useMap(
     map.addControl(new mapboxgl.FullscreenControl());
 
     map.on("load", () => {
+      map.addSource("fires", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+
+      map.addLayer({
+        id: "fires-layer",
+        type: "circle",
+        source: "fires",
+        paint: {
+          "circle-color": "#ff5722",
+          "circle-radius": 2,
+        },
+      });
+
       map.addSource("points", {
         type: "geojson",
         data: {
