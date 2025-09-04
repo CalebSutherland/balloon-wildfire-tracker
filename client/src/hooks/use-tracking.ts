@@ -1,4 +1,3 @@
-// hooks/use-tracking.ts
 import { useState, useCallback, useEffect } from "react";
 
 export function useTracking(selectedBalloon: any) {
@@ -9,7 +8,6 @@ export function useTracking(selectedBalloon: any) {
     setTracking((prev) => !prev);
   }, [selectedBalloon]);
 
-  // Auto-disable tracking when no balloon is selected
   useEffect(() => {
     if (tracking && selectedBalloon === null) {
       setTracking(false);

@@ -9,6 +9,8 @@ import { useTracking } from "../hooks/use-tracking";
 import { Controls } from "./controls";
 import { BalloonOverlay } from "./balloon-overlay";
 import { pad } from "../utils/utils";
+import { useFires } from "../hooks/use-fires";
+import type { FC } from "../types/types";
 
 export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -38,6 +40,34 @@ export default function Map() {
   });
 
   const hour = pad(Math.floor(time) % 24);
+
+  const { fires } = useFires();
+
+  useEffect(() => {
+    if (!mapLoaded || !map.current || !fires.length) return;
+
+    const fireFeatures: FC = {
+      type: "FeatureCollection",
+      features: fires.map((fire, i) => ({
+        type: "Feature",
+        id: i,
+        geometry: {
+          type: "Point",
+          coordinates: [parseFloat(fire.longitude), parseFloat(fire.latitude)],
+        },
+        properties: {
+          confidence: fire.confidence,
+          acq_date: fire.acq_date,
+          acq_time: fire.acq_time,
+        },
+      })),
+    };
+
+    const source = map.current.getSource("fires") as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData(fireFeatures);
+    }
+  }, [mapLoaded, fires, map]);
 
   useEffect(() => {
     updatePositions(time);

@@ -2,9 +2,9 @@ import { useRef, useEffect, useState, useCallback } from "react";
 
 // hooks/use-animation.ts
 export function useAnimation(playing: boolean, speedHrsPerSec = 2.0) {
-  const timeRef = useRef(0);
+  const timeRef = useRef(23);
   const rafRef = useRef<number | null>(null);
-  const [time, setTime] = useState(0);
+  const [time, setTime] = useState(23);
 
   const updateTime = useCallback((newTime: number) => {
     timeRef.current = newTime;
@@ -18,7 +18,8 @@ export function useAnimation(playing: boolean, speedHrsPerSec = 2.0) {
     const step = (now: number) => {
       const dt = (now - last) / 1000;
       last = now;
-      const newTime = (timeRef.current + dt * speedHrsPerSec + 24) % 24;
+
+      const newTime = (timeRef.current - dt * speedHrsPerSec + 24) % 24;
       updateTime(newTime);
       rafRef.current = requestAnimationFrame(step);
     };
