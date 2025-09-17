@@ -84,5 +84,5 @@ export function useBalloonAnimation({
     }
   }, [balloons, map]);
 
-  return { updatePositions, initializeMap };
+  return { updatePositions, initializeMap, fcRef };
 }

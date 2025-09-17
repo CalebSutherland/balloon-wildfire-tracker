@@ -16,8 +16,14 @@ export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  const { balloons, selectedBalloonRef, selectedBalloon, setSelectedBalloon } =
-    useBalloons();
+  const {
+    balloons,
+    selectedBalloonRef,
+    selectedBalloon,
+    setSelectedBalloon,
+    maxBalloon,
+    maxDist,
+  } = useBalloons();
 
   const selectedBalloonIndex = selectedBalloon
     ? Number((selectedBalloon as any).properties.index)
@@ -32,7 +38,7 @@ export default function Map() {
 
   const { time, handleTimeChange } = useAnimation(playing);
 
-  const { updatePositions, initializeMap } = useBalloonAnimation({
+  const { updatePositions, initializeMap, fcRef } = useBalloonAnimation({
     map,
     balloons,
     selectedBalloonIndex,
@@ -42,6 +48,32 @@ export default function Map() {
   const hour = pad(Math.floor(time) % 24);
 
   const { fires } = useFires();
+
+  function selectBalloonByIndex(index: number) {
+    if (!map.current) return;
+
+    const sourceId = "points";
+
+    // Clear previous selection
+    if (selectedBalloonRef.current) {
+      map.current.setFeatureState(selectedBalloonRef.current, {
+        selected: false,
+      });
+    }
+
+    // Set new selection
+    map.current.setFeatureState(
+      { source: sourceId, id: index },
+      { selected: true }
+    );
+
+    // Update state to keep React in sync
+    const feature = fcRef.current?.features.find((f) => f.id === index) ?? null;
+    setSelectedBalloon(feature as mapboxgl.TargetFeature | null);
+
+    // Keep a ref for deselecting later
+    selectedBalloonRef.current = feature as mapboxgl.TargetFeature | null;
+  }
 
   useEffect(() => {
     if (!mapLoaded || !map.current || !fires.length) return;
@@ -59,6 +91,7 @@ export default function Map() {
           confidence: fire.confidence,
           acq_date: fire.acq_date,
           acq_time: fire.acq_time,
+          frp: parseFloat(fire.frp),
         },
       })),
     };
@@ -80,6 +113,11 @@ export default function Map() {
     }
   }, [mapLoaded, balloons, initializeMap]);
 
+  useEffect(() => {
+    console.log(selectedBalloon);
+    console.log(selectedBalloonIndex);
+  }, [selectedBalloon, selectedBalloonIndex]);
+
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Controls
@@ -98,6 +136,22 @@ export default function Map() {
         tracking={tracking}
         handleTracking={handleTracking}
       />
+
+      <div style={{ color: "white" }}>
+        <h3>Balloon Stats</h3>
+        <span style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <p>
+            Furthest Flight: {maxDist.toFixed(0)}m Balloon #{maxBalloon}
+          </p>
+          {maxBalloon && (
+            <button onClick={() => selectBalloonByIndex(maxBalloon)}>
+              Select
+            </button>
+          )}
+        </span>
+
+        <p>Highest Altitude: </p>
+      </div>
     </div>
   );
 }
