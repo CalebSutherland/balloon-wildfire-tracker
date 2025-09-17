@@ -38,8 +38,20 @@ export function useMap(
         type: "circle",
         source: "fires",
         paint: {
-          "circle-color": "#ff5722",
           "circle-radius": 2,
+          "circle-color": [
+            "interpolate",
+            ["linear"],
+            ["get", "frp"],
+            0,
+            "#ffff00", // yellow
+            5,
+            "#ff7b00", // orange
+            20,
+            "#ff0000", // red
+            50,
+            "#8b0000", // dark red
+          ],
         },
       });
 
@@ -65,10 +77,10 @@ export function useMap(
           "circle-radius": [
             "case",
             ["boolean", ["feature-state", "selected"], false],
-            16,
-            ["boolean", ["feature-state", "highlight"], false],
-            16,
             12,
+            ["boolean", ["feature-state", "highlight"], false],
+            12,
+            8,
           ],
           "circle-stroke-width": 2,
           "circle-stroke-color": "#ffffff",
@@ -97,9 +109,12 @@ export function useMap(
           if (!feature) return;
 
           if (selectedBalloonRef.current) {
-            map.setFeatureState(selectedBalloonRef.current, {
-              selected: false,
-            });
+            map.setFeatureState(
+              { source: "points", id: selectedBalloonRef.current.id! },
+              {
+                selected: false,
+              }
+            );
           }
           map.setFeatureState(feature, { selected: true });
           setSelectedBalloon(feature);
@@ -110,9 +125,15 @@ export function useMap(
         type: "click",
         handler: () => {
           if (selectedBalloonRef.current) {
-            map.setFeatureState(selectedBalloonRef.current, {
-              selected: false,
-            });
+            map.setFeatureState(
+              {
+                source: "points",
+                id: selectedBalloonRef.current.id!,
+              },
+              {
+                selected: false,
+              }
+            );
             setSelectedBalloon(null);
           }
         },

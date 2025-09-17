@@ -1,6 +1,7 @@
+import type { TargetFeature } from "mapbox-gl";
 import { useState, useCallback, useEffect } from "react";
 
-export function useTracking(selectedBalloon: any) {
+export function useTracking(selectedBalloon: TargetFeature | null) {
   const [tracking, setTracking] = useState(false);
 
   const handleTracking = useCallback(() => {
