@@ -10,35 +10,26 @@ import { Controls } from "./controls";
 import { BalloonOverlay } from "./balloon-overlay";
 import { pad } from "../utils/utils";
 import { useFires } from "../hooks/use-fires";
-import type { FC } from "../types/types";
 
 export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  const {
-    balloons,
-    selectedBalloonRef,
-    selectedBalloon,
-    setSelectedBalloon,
-    maxBalloon,
-    maxDist,
-  } = useBalloons();
+  const { balloons, maxBalloon, maxDist } = useBalloons();
+  const { fires } = useFires();
+
+  const { map, selectedBalloon, setSelectedBalloon, selectedBalloonRef } =
+    useMap(mapContainerRef, fires, balloons);
 
   const selectedBalloonIndex = selectedBalloon
     ? Number((selectedBalloon as any).properties.index)
     : null;
 
-  const { map, mapLoaded } = useMap(mapContainerRef, {
-    selectedBalloonRef,
-    setSelectedBalloon,
-  });
-
   const { tracking, handleTracking } = useTracking(selectedBalloon);
 
   const { time, handleTimeChange } = useAnimation(playing);
 
-  const { updatePositions, initializeMap, fcRef } = useBalloonAnimation({
+  const { updatePositions, fcRef } = useBalloonAnimation({
     map,
     balloons,
     selectedBalloonIndex,
@@ -46,8 +37,6 @@ export default function Map() {
   });
 
   const hour = pad(Math.floor(time) % 24);
-
-  const { fires } = useFires();
 
   function selectBalloonByIndex(index: number) {
     if (!map.current) return;
@@ -76,42 +65,8 @@ export default function Map() {
   }
 
   useEffect(() => {
-    if (!mapLoaded || !map.current || !fires.length) return;
-
-    const fireFeatures: FC = {
-      type: "FeatureCollection",
-      features: fires.map((fire, i) => ({
-        type: "Feature",
-        id: i,
-        geometry: {
-          type: "Point",
-          coordinates: [parseFloat(fire.longitude), parseFloat(fire.latitude)],
-        },
-        properties: {
-          confidence: fire.confidence,
-          acq_date: fire.acq_date,
-          acq_time: fire.acq_time,
-          frp: parseFloat(fire.frp),
-        },
-      })),
-    };
-
-    const source = map.current.getSource("fires") as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData(fireFeatures);
-    }
-  }, [mapLoaded, fires, map]);
-
-  useEffect(() => {
     updatePositions(time);
   }, [time, updatePositions]);
-
-  // Initialize map data when loaded
-  useEffect(() => {
-    if (mapLoaded && balloons) {
-      initializeMap();
-    }
-  }, [mapLoaded, balloons, initializeMap]);
 
   useEffect(() => {
     console.log(selectedBalloon);

@@ -61,28 +61,5 @@ export function useBalloonAnimation({
     [balloons, selectedBalloonIndex, tracking, map]
   );
 
-  // Initialize with first hour data
-  const initializeMap = useCallback(() => {
-    if (!balloons || !map.current) return;
-
-    const firstHour = balloons["23"];
-    const features: GeoJSON.Feature<GeoJSON.Point>[] = firstHour.map((b) => ({
-      type: "Feature",
-      id: b.index,
-      geometry: {
-        type: "Point",
-        coordinates: [b.lon, b.lat, b.alt] as [number, number, number],
-      },
-      properties: { index: b.index, lat: b.lat, lon: b.lon, alt: b.alt },
-    }));
-
-    fcRef.current = { type: "FeatureCollection", features };
-
-    const source = map.current.getSource("points") as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData(fcRef.current);
-    }
-  }, [balloons, map]);
-
-  return { updatePositions, initializeMap, fcRef };
+  return { updatePositions, fcRef };
 }
