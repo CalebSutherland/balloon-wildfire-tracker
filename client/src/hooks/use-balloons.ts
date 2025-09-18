@@ -1,17 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { BalloonPoint } from "../types/types";
 import { haversine } from "../utils/utils";
 
 export function useBalloons() {
   const [balloons, setBalloons] = useState<Record<string, BalloonPoint[]>>({});
-
   const [distances, setDistances] = useState<Record<number, number>>({});
   const [maxBalloon, setMaxBalloon] = useState<number | null>(null);
   const [maxDist, setMaxDist] = useState<number>(0);
-
-  const [selectedBalloon, setSelectedBalloon] =
-    useState<mapboxgl.TargetFeature | null>(null);
-  const selectedBalloonRef = useRef<mapboxgl.TargetFeature | null>(null);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/treasure")
@@ -64,17 +59,10 @@ export function useBalloons() {
       .catch(console.error);
   }, []);
 
-  useEffect(() => {
-    selectedBalloonRef.current = selectedBalloon;
-  }, [selectedBalloon]);
-
   return {
     balloons,
     distances,
     maxBalloon,
     maxDist,
-    selectedBalloon,
-    setSelectedBalloon,
-    selectedBalloonRef,
   };
 }

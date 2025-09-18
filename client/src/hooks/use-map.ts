@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import type { BalloonPoint, FC, FireRecord } from "../types/types";
 
 export function useMap(
   containerRef: React.RefObject<HTMLDivElement | null>,
-  {
-    selectedBalloonRef,
-    setSelectedBalloon,
-  }: {
-    selectedBalloonRef: React.RefObject<mapboxgl.TargetFeature | null>;
-    setSelectedBalloon: (f: mapboxgl.TargetFeature | null) => void;
-  }
+  fires: FireRecord[],
+  balloons: Record<string, BalloonPoint[]>
 ) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+
+  const [selectedBalloon, setSelectedBalloon] =
+    useState<mapboxgl.TargetFeature | null>(null);
+  const selectedBalloonRef = useRef<mapboxgl.TargetFeature | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -44,13 +44,13 @@ export function useMap(
             ["linear"],
             ["get", "frp"],
             0,
-            "#ffff00", // yellow
+            "#ffff00",
             5,
-            "#ff7b00", // orange
+            "#ff7b00",
             20,
-            "#ff0000", // red
+            "#ff0000",
             50,
-            "#8b0000", // dark red
+            "#8b0000",
           ],
         },
       });
@@ -87,21 +87,6 @@ export function useMap(
         },
       });
 
-      // map.addLayer({
-      //   id: "points-label",
-      //   type: "symbol",
-      //   source: "points",
-      //   layout: {
-      //     "text-field": ["get", "index"],
-      //     "text-size": 10,
-      //     "text-anchor": "center",
-      //     "text-allow-overlap": true,
-      //   },
-      //   paint: {
-      //     "text-color": "#fff",
-      //   },
-      // });
-
       map.addInteraction("click", {
         type: "click",
         target: { layerId: "points-layer" },
@@ -118,6 +103,7 @@ export function useMap(
           }
           map.setFeatureState(feature, { selected: true });
           setSelectedBalloon(feature);
+          selectedBalloonRef.current = feature;
         },
       });
 
@@ -135,6 +121,7 @@ export function useMap(
               }
             );
             setSelectedBalloon(null);
+            selectedBalloonRef.current = null;
           }
         },
       });
@@ -167,5 +154,67 @@ export function useMap(
     return () => map.remove();
   }, [containerRef]);
 
-  return { map: mapRef, mapLoaded };
+  //Add fire data points
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !fires.length) return;
+
+    const fireFeatures: FC = {
+      type: "FeatureCollection",
+      features: fires.map((fire, i) => ({
+        type: "Feature",
+        id: i,
+        geometry: {
+          type: "Point",
+          coordinates: [parseFloat(fire.longitude), parseFloat(fire.latitude)],
+        },
+        properties: {
+          confidence: fire.confidence,
+          acq_date: fire.acq_date,
+          acq_time: fire.acq_time,
+          frp: parseFloat(fire.frp),
+        },
+      })),
+    };
+
+    const source = mapRef.current.getSource("fires") as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData(fireFeatures);
+    }
+  }, [mapLoaded, fires, mapRef]);
+
+  //Add balloon data points
+  useEffect(() => {
+    if (!mapLoaded || !balloons || !mapRef.current) return;
+
+    const balloonFeatures: FC = {
+      type: "FeatureCollection",
+      features: balloons["23"].map((b) => ({
+        type: "Feature",
+        id: b.index,
+        geometry: {
+          type: "Point",
+          coordinates: [b.lon, b.lat],
+        },
+        properties: {
+          index: b.index,
+          lon: b.lon,
+          lat: b.lat,
+          alt: b.alt,
+        },
+      })),
+    };
+
+    const source = mapRef.current.getSource("points") as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData(balloonFeatures);
+    }
+  }, [mapLoaded, balloons, mapRef]);
+
+  return {
+    map: mapRef,
+    mapLoaded,
+    selectedBalloon,
+    setSelectedBalloon,
+    selectedBalloonRef,
+  };
 }
