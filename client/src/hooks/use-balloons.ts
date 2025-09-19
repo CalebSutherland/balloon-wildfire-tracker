@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { BalloonPoint } from "../types/types";
-import { haversine } from "../utils/utils";
+import { clampLat, haversine } from "../utils/utils";
 
 export function useBalloons() {
   const [balloons, setBalloons] = useState<Record<string, BalloonPoint[]>>({});
@@ -36,7 +36,9 @@ export function useBalloons() {
             const prev = objData[hours[h - 1]][i];
             const curr = objData[hours[h]][i];
             if (prev && curr) {
-              total += haversine(prev.lat, prev.lon, curr.lat, curr.lon);
+              const prevLat = clampLat(prev.lat);
+              const currLat = clampLat(curr.lat);
+              total += haversine(prevLat, prev.lon, currLat, curr.lon);
             }
           }
           distMap[i] = total;

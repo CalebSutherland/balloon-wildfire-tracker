@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import {
   createInterpolatedFeatures,
   getCameraPosition,
@@ -6,20 +6,42 @@ import {
 import type { BalloonPoint } from "../types/types";
 
 interface UseBalloonAnimationParams {
+  playing: boolean;
+  speedHrsPerSec?: number;
   map: React.RefObject<mapboxgl.Map | null>;
+  balloonFCRef: React.RefObject<GeoJSON.FeatureCollection | null>;
   balloons: Record<string, BalloonPoint[]> | null;
   selectedBalloonIndex: number | null;
   tracking: boolean;
 }
 
 export function useBalloonAnimation({
+  playing,
+  speedHrsPerSec = 2.0,
   map,
+  balloonFCRef,
   balloons,
   selectedBalloonIndex,
   tracking,
 }: UseBalloonAnimationParams) {
-  const fcRef = useRef<GeoJSON.FeatureCollection | null>(null);
+  const timeRef = useRef(23);
+  const rafRef = useRef<number | null>(null);
   const lastCamMsRef = useRef(0);
+  const minFrameDelta = 1000 / 60;
+  const lastFrameTimeRef = useRef(0);
+  const [time, setTime] = useState(23);
+
+  const updateTime = useCallback((newTime: number) => {
+    timeRef.current = newTime;
+    setTime(newTime);
+  }, []);
+
+  const handleTimeChange = useCallback(
+    (t: number) => {
+      updateTime(t);
+    },
+    [updateTime]
+  );
 
   const updatePositions = useCallback(
     (fractionalHour: number) => {
@@ -32,11 +54,11 @@ export function useBalloonAnimation({
         trackingMode: tracking,
       });
 
-      fcRef.current = { type: "FeatureCollection", features };
+      balloonFCRef.current = { type: "FeatureCollection", features };
 
       const source = map.current.getSource("points") as mapboxgl.GeoJSONSource;
       if (source) {
-        source.setData(fcRef.current);
+        source.setData(balloonFCRef.current);
       }
 
       // Handle camera tracking
@@ -61,5 +83,38 @@ export function useBalloonAnimation({
     [balloons, selectedBalloonIndex, tracking, map]
   );
 
-  return { updatePositions, fcRef };
+  useEffect(() => {
+    if (!playing) return;
+
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+
+      const newTime = (timeRef.current - dt * speedHrsPerSec + 24) % 24;
+      timeRef.current = newTime;
+
+      if (now - lastFrameTimeRef.current >= minFrameDelta) {
+        updateTime(newTime);
+        updatePositions(newTime);
+        lastFrameTimeRef.current = now;
+      }
+
+      rafRef.current = requestAnimationFrame(step);
+    };
+
+    rafRef.current = requestAnimationFrame(step);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [playing, speedHrsPerSec, updateTime, updatePositions]);
+
+  useEffect(() => {
+    if (!playing) {
+      updatePositions(time);
+    }
+  }, [time, updatePositions]);
+
+  return { time, handleTimeChange };
 }
