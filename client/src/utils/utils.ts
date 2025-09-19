@@ -14,7 +14,9 @@ export function haversine(
   const lat1Rad = toRad(lat1);
   const lat2Rad = toRad(lat2);
   const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
+  let dLon = toRad(lon2 - lon1);
+  if (dLon > Math.PI) dLon -= 2 * Math.PI;
+  if (dLon < -Math.PI) dLon += 2 * Math.PI;
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +

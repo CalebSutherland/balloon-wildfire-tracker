@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import type { BalloonPoint, FC, FireRecord } from "../types/types";
 
@@ -8,8 +8,10 @@ export function useMap(
   balloons: Record<string, BalloonPoint[]>
 ) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const balloonFCRef = useRef<GeoJSON.FeatureCollection | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
+  const [tracking, setTracking] = useState(false);
   const [selectedBalloon, setSelectedBalloon] =
     useState<mapboxgl.TargetFeature | null>(null);
   const selectedBalloonRef = useRef<mapboxgl.TargetFeature | null>(null);
@@ -204,11 +206,47 @@ export function useMap(
       })),
     };
 
+    balloonFCRef.current = balloonFeatures;
+
     const source = mapRef.current.getSource("points") as mapboxgl.GeoJSONSource;
     if (source) {
       source.setData(balloonFeatures);
     }
   }, [mapLoaded, balloons, mapRef]);
+
+  function selectBalloonByIndex(index: number) {
+    if (!mapRef.current) return;
+
+    const sourceId = "points";
+
+    if (selectedBalloonRef.current) {
+      mapRef.current.setFeatureState(selectedBalloonRef.current, {
+        selected: false,
+      });
+    }
+
+    mapRef.current.setFeatureState(
+      { source: sourceId, id: index },
+      { selected: true }
+    );
+
+    const feature =
+      balloonFCRef.current?.features.find((f) => f.id === index) ?? null;
+    setSelectedBalloon(feature as mapboxgl.TargetFeature | null);
+
+    selectedBalloonRef.current = feature as mapboxgl.TargetFeature | null;
+  }
+
+  const handleTracking = useCallback(() => {
+    if (selectedBalloon === null) return;
+    setTracking((prev) => !prev);
+  }, [selectedBalloon]);
+
+  useEffect(() => {
+    if (tracking && selectedBalloon === null) {
+      setTracking(false);
+    }
+  }, [selectedBalloon, tracking]);
 
   return {
     map: mapRef,
@@ -216,5 +254,9 @@ export function useMap(
     selectedBalloon,
     setSelectedBalloon,
     selectedBalloonRef,
+    balloonFCRef,
+    selectBalloonByIndex,
+    tracking,
+    handleTracking,
   };
 }
