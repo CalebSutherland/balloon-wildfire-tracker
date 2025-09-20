@@ -12,7 +12,8 @@ export type FireRecord = {
   acq_time: string;
   confidence: string;
   frp: string;
-  [key: string]: string;
+  timestamp: number;
+  [key: string]: string | number;
 };
 
 export type FC = GeoJSON.FeatureCollection<GeoJSON.Point>;

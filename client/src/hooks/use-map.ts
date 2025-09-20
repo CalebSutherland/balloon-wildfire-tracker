@@ -35,6 +35,8 @@ export function useMap(
         data: { type: "FeatureCollection", features: [] },
       });
 
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+
       map.addLayer({
         id: "fires-layer",
         type: "circle",
@@ -42,17 +44,22 @@ export function useMap(
         paint: {
           "circle-radius": 2,
           "circle-color": [
-            "interpolate",
-            ["linear"],
-            ["get", "frp"],
-            0,
-            "#ffff00",
-            5,
-            "#ff7b00",
-            20,
-            "#ff0000",
-            50,
-            "#8b0000",
+            "step",
+            [
+              "/",
+              ["-", nowInSeconds, ["to-number", ["get", "timestamp"]]],
+              3600,
+            ],
+            "#6b0000", // < 1 hour
+            1,
+            "#c20000", // 1–3 hours
+            3,
+            "#ff4800", // 3–6 hours
+            6,
+            "#ffc400", // 6–12 hours
+            "#fdf858", // 12–24 hours
+            24,
+            "#ffff92",
           ],
         },
       });
@@ -174,6 +181,7 @@ export function useMap(
           acq_date: fire.acq_date,
           acq_time: fire.acq_time,
           frp: parseFloat(fire.frp),
+          timestamp: fire.timestamp,
         },
       })),
     };

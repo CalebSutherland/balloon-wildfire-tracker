@@ -18,7 +18,7 @@ const PORT = 5000;
 const MAP_KEY = process.env.FIRMS_MAP_KEY;
 const SATELLITE = "VIIRS_SNPP_NRT";
 const REGION = "world";
-const DAY_RANGE = 1;
+const DAY_RANGE = 2;
 
 app.use(cors({ origin: "http://localhost:5173" }));
 
@@ -38,20 +38,7 @@ app.get("/api/treasure", (_req, res) => {
 
 app.get("/api/wildfires", async (_req, res) => {
   try {
-    const availUrl = `https://firms.modaps.eosdis.nasa.gov/api/data_availability/csv/${MAP_KEY}/${SATELLITE}`;
-    const availRes = await fetch(availUrl);
-    const availCsv = await availRes.text();
-    const availability = parse(availCsv, {
-      columns: true,
-      skip_empty_lines: true,
-    }) as AvailabilityRecord[];
-
-    const latestDate = availability[0]?.max_date;
-    if (!latestDate) {
-      throw new Error("No max_date found for satellite");
-    }
-
-    const dataUrl = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/${SATELLITE}/${REGION}/${DAY_RANGE}/${latestDate}`;
+    const dataUrl = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/${SATELLITE}/${REGION}/${DAY_RANGE}`;
     const fireRes = await fetch(dataUrl);
     if (!fireRes.ok) throw new Error("Failed to fetch FIRMS fire data");
 
