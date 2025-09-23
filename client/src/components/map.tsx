@@ -13,7 +13,7 @@ export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  const { balloons, maxBalloon, maxDist } = useBalloons();
+  const { balloons, maxBalloon, maxDist, balloonError } = useBalloons();
   const { fires } = useFires();
 
   const {
@@ -40,40 +40,44 @@ export default function Map() {
 
   const hour = pad(Math.floor(time) % 24);
 
-  return (
-    <div style={{ height: "100%", width: "100%" }}>
-      <Controls
-        time={time}
-        handleTimeChange={handleTimeChange}
-        playing={playing}
-        setPlaying={setPlaying}
-      />
+  if (!balloonError) {
+    return (
+      <div style={{ height: "100%", width: "100%" }}>
+        <Controls
+          time={time}
+          handleTimeChange={handleTimeChange}
+          playing={playing}
+          setPlaying={setPlaying}
+        />
 
-      <div ref={mapContainerRef} style={{ height: "100%", width: "100%" }} />
+        <div ref={mapContainerRef} style={{ height: "100%", width: "100%" }} />
 
-      <BalloonOverlay
-        balloons={balloons}
-        hour={hour}
-        selectedBalloonIndex={selectedBalloonIndex}
-        tracking={tracking}
-        handleTracking={handleTracking}
-      />
+        <BalloonOverlay
+          balloons={balloons}
+          hour={hour}
+          selectedBalloonIndex={selectedBalloonIndex}
+          tracking={tracking}
+          handleTracking={handleTracking}
+        />
 
-      <div style={{ color: "white" }}>
-        <h3>Balloon Stats</h3>
-        <span style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <p>
-            Furthest Flight: {maxDist.toFixed(0)}m Balloon #{maxBalloon}
-          </p>
-          {maxBalloon && (
-            <button onClick={() => selectBalloonByIndex(maxBalloon)}>
-              Select
-            </button>
-          )}
-        </span>
+        <div style={{ color: "white" }}>
+          <h3>Balloon Stats</h3>
+          <span style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <p>
+              Furthest Flight: {maxDist.toFixed(0)}m Balloon #{maxBalloon}
+            </p>
+            {maxBalloon && (
+              <button onClick={() => selectBalloonByIndex(maxBalloon)}>
+                Select
+              </button>
+            )}
+          </span>
 
-        <p>Highest Altitude: </p>
+          <p>Highest Altitude: </p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  } else {
+    return <p>Balloon Error</p>;
+  }
 }

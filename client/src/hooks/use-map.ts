@@ -50,16 +50,17 @@ export function useMap(
               ["-", nowInSeconds, ["to-number", ["get", "timestamp"]]],
               3600,
             ],
-            "#6b0000", // < 1 hour
+            "#450000", // < 1 hour
             1,
-            "#c20000", // 1–3 hours
+            "#830000", // 1–3 hours
             3,
-            "#ff4800", // 3–6 hours
+            "#ff0000", // 3–6 hours
             6,
-            "#ffc400", // 6–12 hours
-            "#fdf858", // 12–24 hours
+            "#ff9b20", // 6–12 hours
+            12,
+            "#fff93d", // 12–24 hours
             24,
-            "#ffff92",
+            "#ffffa5",
           ],
         },
       });
@@ -131,6 +132,7 @@ export function useMap(
             );
             setSelectedBalloon(null);
             selectedBalloonRef.current = null;
+            setTracking(false);
           }
         },
       });
@@ -249,12 +251,6 @@ export function useMap(
     if (selectedBalloon === null) return;
     setTracking((prev) => !prev);
   }, [selectedBalloon]);
-
-  useEffect(() => {
-    if (tracking && selectedBalloon === null) {
-      setTracking(false);
-    }
-  }, [selectedBalloon, tracking]);
 
   return {
     map: mapRef,
