@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import type { FeatureCollection, LineString } from "geojson";
 import type { BalloonPoint, FC, FireRecord } from "../types/types";
+import { normailzeLineCoords } from "../utils/utils";
 
 export function useMap(
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -30,6 +32,7 @@ export function useMap(
     map.addControl(new mapboxgl.FullscreenControl());
 
     map.on("load", () => {
+      // fire points
       map.addSource("fires", {
         type: "geojson",
         data: { type: "FeatureCollection", features: [] },
@@ -65,6 +68,30 @@ export function useMap(
         },
       });
 
+      // balloon path
+      map.addSource("balloonPath", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },
+      });
+
+      map.addLayer({
+        id: "balloonPath-layer",
+        type: "line",
+        source: "balloonPath",
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+        paint: {
+          "line-color": "#ff0000",
+          "line-width": 3,
+        },
+      });
+
+      // balloon points
       map.addSource("points", {
         type: "geojson",
         data: {
@@ -111,6 +138,7 @@ export function useMap(
               }
             );
           }
+
           map.setFeatureState(feature, { selected: true });
           setSelectedBalloon(feature);
           selectedBalloonRef.current = feature;
@@ -130,9 +158,20 @@ export function useMap(
                 selected: false,
               }
             );
+
             setSelectedBalloon(null);
             selectedBalloonRef.current = null;
             setTracking(false);
+
+            const source = map.getSource(
+              "balloonPath"
+            ) as mapboxgl.GeoJSONSource;
+            if (source) {
+              source.setData({
+                type: "FeatureCollection",
+                features: [],
+              });
+            }
           }
         },
       });
@@ -223,6 +262,44 @@ export function useMap(
       source.setData(balloonFeatures);
     }
   }, [mapLoaded, balloons, mapRef]);
+
+  // balloon path
+
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !selectedBalloon) return;
+
+    const source = mapRef.current.getSource(
+      "balloonPath"
+    ) as mapboxgl.GeoJSONSource;
+    if (!source) return;
+
+    const balloonIndex = selectedBalloon.id as number;
+
+    // Collect all positions of that balloon across hours
+    const coords: [number, number][] = [];
+    for (const hour of Object.keys(balloons).sort()) {
+      const point = balloons[hour]?.[balloonIndex];
+      if (point) coords.push([point.lon, point.lat]);
+    }
+
+    const adjustedCoords = normailzeLineCoords(coords);
+
+    const lineData: FeatureCollection<LineString> = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: adjustedCoords,
+          },
+          properties: {},
+        },
+      ],
+    };
+
+    source.setData(lineData);
+  }, [mapLoaded, balloons, selectedBalloon]);
 
   function selectBalloonByIndex(index: number) {
     if (!mapRef.current) return;
