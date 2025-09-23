@@ -6,7 +6,8 @@ export function useBalloons() {
   const [balloons, setBalloons] = useState<Record<string, BalloonPoint[]>>({});
   const [distances, setDistances] = useState<Record<number, number>>({});
   const [maxBalloon, setMaxBalloon] = useState<number | null>(null);
-  const [maxDist, setMaxDist] = useState<number>(0);
+  const [maxDist, setMaxDist] = useState(0);
+  const [balloonError, setBalloonError] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/treasure")
@@ -14,12 +15,17 @@ export function useBalloons() {
       .then((data: Record<string, number[][]>) => {
         const objData: Record<string, BalloonPoint[]> = {};
         for (const h in data) {
-          objData[h] = data[h].map(([lat, lon, alt], i) => ({
-            lat,
-            lon,
-            alt,
-            index: i,
-          }));
+          if (!data[h] || data[h].length === 0) {
+            setBalloonError(true);
+            objData[h] = [];
+          } else {
+            objData[h] = data[h].map(([lat, lon, alt], i) => ({
+              lat,
+              lon,
+              alt,
+              index: i,
+            }));
+          }
         }
         setBalloons(objData);
 
@@ -66,5 +72,6 @@ export function useBalloons() {
     distances,
     maxBalloon,
     maxDist,
+    balloonError,
   };
 }

@@ -24,13 +24,25 @@ app.use(cors({ origin: "http://localhost:5173" }));
 
 const balloons: Record<string, number[][]> = {};
 
-for (let i = 0; i < 24; i++) {
-  const hour = String(i).padStart(2, "0");
-  const res = await fetch(
-    `https://a.windbornesystems.com/treasure/${hour}.json`
-  );
-  balloons[hour] = await res.json();
+async function loadBalloons() {
+  for (let i = 0; i < 24; i++) {
+    const hour = String(i).padStart(2, "0");
+    const url = `https://a.windbornesystems.com/treasure/${hour}.json`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} at ${url}`);
+      }
+      balloons[hour] = await res.json();
+    } catch (err) {
+      console.error(`Failed to load balloon data for hour ${hour}:`, err);
+      balloons[hour] = [];
+    }
+  }
 }
+
+await loadBalloons();
 
 app.get("/api/treasure", (_req, res) => {
   res.json(balloons);
