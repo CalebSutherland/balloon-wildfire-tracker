@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import type { BalloonPoint, FC, FireRecord } from "../types/types";
@@ -13,7 +13,6 @@ export function useMap(
   const balloonFCRef = useRef<GeoJSON.FeatureCollection | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  const [tracking, setTracking] = useState(false);
   const [selectedBalloon, setSelectedBalloon] =
     useState<mapboxgl.TargetFeature | null>(null);
   const selectedBalloonRef = useRef<mapboxgl.TargetFeature | null>(null);
@@ -161,7 +160,6 @@ export function useMap(
 
             setSelectedBalloon(null);
             selectedBalloonRef.current = null;
-            setTracking(false);
 
             const source = map.getSource(
               "balloonPath"
@@ -264,7 +262,6 @@ export function useMap(
   }, [mapLoaded, balloons, mapRef]);
 
   // balloon path
-
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || !selectedBalloon) return;
 
@@ -324,11 +321,6 @@ export function useMap(
     selectedBalloonRef.current = feature as mapboxgl.TargetFeature | null;
   }
 
-  const handleTracking = useCallback(() => {
-    if (selectedBalloon === null) return;
-    setTracking((prev) => !prev);
-  }, [selectedBalloon]);
-
   return {
     map: mapRef,
     mapLoaded,
@@ -337,7 +329,5 @@ export function useMap(
     selectedBalloonRef,
     balloonFCRef,
     selectBalloonByIndex,
-    tracking,
-    handleTracking,
   };
 }

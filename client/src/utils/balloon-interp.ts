@@ -35,8 +35,6 @@ function interpolateBalloon(
 export function createInterpolatedFeatures({
   fractionalHour,
   balloons,
-  selectedBalloonIndex,
-  trackingMode = false,
 }: InterpolationParams): GeoJSON.Feature<GeoJSON.Point>[] {
   const h1 = Math.floor(fractionalHour) % 24;
   const h2 = (h1 + 1) % 24;
@@ -45,16 +43,6 @@ export function createInterpolatedFeatures({
   const b = balloons[pad(h2)];
 
   if (!a || !b) return [];
-
-  if (
-    trackingMode &&
-    selectedBalloonIndex !== null &&
-    selectedBalloonIndex !== undefined
-  ) {
-    const b1 = a[selectedBalloonIndex];
-    const b2 = b[selectedBalloonIndex] || b1;
-    return b1 ? [interpolateBalloon(b1, b2, t)] : [];
-  }
 
   return a.map((b1, i) => {
     const b2 = b[i] || b1;

@@ -4,16 +4,12 @@ interface BalloonOverlayProps {
   balloons: Record<string, BalloonPoint[]>;
   hour: string;
   selectedBalloonIndex: number | null;
-  tracking: boolean;
-  handleTracking: () => void;
 }
 
 export function BalloonOverlay({
   balloons,
   hour,
   selectedBalloonIndex,
-  tracking,
-  handleTracking,
 }: BalloonOverlayProps) {
   if (selectedBalloonIndex == null) return null;
 
@@ -56,9 +52,6 @@ export function BalloonOverlay({
         <li>
           <b>Alt</b>: {currentBalloon.alt.toFixed(2)}
         </li>
-        <button onClick={handleTracking}>
-          {tracking ? "Stop tracking" : "Track this balloon!"}
-        </button>
       </div>
     </div>
   );
