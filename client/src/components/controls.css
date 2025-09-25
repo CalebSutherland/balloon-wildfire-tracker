@@ -33,22 +33,31 @@
   --sidebar-ring: oklch(0.708 0 0);
 
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  padding: 1.1rem 1rem 0.1rem;
   background-color: #fafafa;
-  height: 2rem;
-  padding-inline: 1rem;
+  color: #0a0a0a;
   border-radius: 4px;
   box-shadow: 0 0 0 2px #0000001a;
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  font-weight: 600;
 }
 
 .play-button {
   color: #0a0a0a;
   background-color: #fafafa;
-  height: 2rem;
   padding-inline: 0.3rem;
   border-radius: 4px;
   box-shadow: 0 0 0 2px #0000001a;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .play-button:hover {
