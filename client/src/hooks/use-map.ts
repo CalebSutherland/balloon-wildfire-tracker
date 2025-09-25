@@ -77,13 +77,13 @@ export function useMap(
               ["-", nowInSeconds, ["to-number", ["get", "timestamp"]]],
               3600,
             ],
-            "#450000", // < 1 hour
+            "#9f1818", // < 1 hour
             1,
-            "#830000", // 1–3 hours
+            "#ca0000", // 1–3 hours
             3,
-            "#ff0000", // 3–6 hours
+            "#ff4400", // 3–6 hours
             6,
-            "#ff9b20", // 6–12 hours
+            "#ffab3d", // 6–12 hours
             12,
             "#fff93d", // 12–24 hours
             24,
