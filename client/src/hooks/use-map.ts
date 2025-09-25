@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import type { FeatureCollection, LineString } from "geojson";
 import type { BalloonPoint, FC, FireRecord } from "../types/types";
-import { normailzeLineCoords } from "../utils/utils";
+import { normailzeLineCoords, subdivideSegment } from "../utils/utils";
+import * as geokdbush from "geokdbush";
+import type KDBush from "kdbush";
 
 export function useMap(
   containerRef: React.RefObject<HTMLDivElement | null>,
   fires: FireRecord[],
+  fireIndexRef: React.RefObject<KDBush | null>,
   balloons: Record<string, BalloonPoint[]>
 ) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -77,6 +79,20 @@ export function useMap(
       });
 
       map.addLayer({
+        id: "balloonPath-border",
+        type: "line",
+        source: "balloonPath",
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 7,
+        },
+      });
+
+      map.addLayer({
         id: "balloonPath-layer",
         type: "line",
         source: "balloonPath",
@@ -85,7 +101,7 @@ export function useMap(
           "line-cap": "round",
         },
         paint: {
-          "line-color": "#ff0000",
+          "line-color": ["get", "color"],
           "line-width": 3,
         },
       });
@@ -213,7 +229,7 @@ export function useMap(
         id: i,
         geometry: {
           type: "Point",
-          coordinates: [parseFloat(fire.longitude), parseFloat(fire.latitude)],
+          coordinates: [fire.longitude, fire.latitude],
         },
         properties: {
           confidence: fire.confidence,
@@ -261,10 +277,10 @@ export function useMap(
     }
   }, [mapLoaded, balloons, mapRef]);
 
-  // balloon path
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || !selectedBalloon) return;
 
+    const index = fireIndexRef.current; // KDBush | null
     const source = mapRef.current.getSource(
       "balloonPath"
     ) as mapboxgl.GeoJSONSource;
@@ -272,31 +288,69 @@ export function useMap(
 
     const balloonIndex = selectedBalloon.id as number;
 
-    // Collect all positions of that balloon across hours
+    // collect balloon coordinates
     const coords: [number, number][] = [];
     for (const hour of Object.keys(balloons).sort()) {
       const point = balloons[hour]?.[balloonIndex];
       if (point) coords.push([point.lon, point.lat]);
     }
+    const adjusted = normailzeLineCoords(coords);
+    if (adjusted.length < 2) {
+      source.setData({ type: "FeatureCollection", features: [] });
+      return;
+    }
 
-    const adjustedCoords = normailzeLineCoords(coords);
+    const maxStepKm = 10; // maximum distance per subsegment
+    const segments: GeoJSON.Feature<GeoJSON.LineString>[] = [];
 
-    const lineData: FeatureCollection<LineString> = {
-      type: "FeatureCollection",
-      features: [
-        {
+    for (let i = 0; i < adjusted.length - 1; i++) {
+      const start = adjusted[i];
+      const end = adjusted[i + 1];
+
+      const subpoints = subdivideSegment(start, end, maxStepKm);
+
+      for (let j = 0; j < subpoints.length - 1; j++) {
+        const subStart = subpoints[j];
+        const subEnd = subpoints[j + 1];
+
+        const midLon = (subStart[0] + subEnd[0]) / 2;
+        const midLat = (subStart[1] + subEnd[1]) / 2;
+
+        let nearestDistanceKm = Infinity;
+        if (index && fires.length) {
+          const nearestIds = geokdbush.around(
+            index,
+            midLon,
+            midLat,
+            1,
+            50
+          ) as number[];
+          if (nearestIds.length > 0) {
+            const nearestFire = fires[nearestIds[0]];
+            nearestDistanceKm = geokdbush.distance(
+              midLon,
+              midLat,
+              nearestFire.longitude,
+              nearestFire.latitude
+            );
+          }
+        }
+
+        let color = "#00ff00";
+        if (nearestDistanceKm <= 5) color = "#ff0000";
+        else if (nearestDistanceKm <= 20) color = "#ff9b20";
+        else if (nearestDistanceKm <= 50) color = "#fff93d";
+
+        segments.push({
           type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: adjustedCoords,
-          },
-          properties: {},
-        },
-      ],
-    };
+          geometry: { type: "LineString", coordinates: [subStart, subEnd] },
+          properties: { color },
+        });
+      }
+    }
 
-    source.setData(lineData);
-  }, [mapLoaded, balloons, selectedBalloon]);
+    source.setData({ type: "FeatureCollection", features: segments });
+  }, [mapLoaded, balloons, selectedBalloon, fires]);
 
   function selectBalloonByIndex(index: number) {
     if (!mapRef.current) return;

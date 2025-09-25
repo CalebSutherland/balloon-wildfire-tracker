@@ -14,11 +14,12 @@ export default function Map() {
   const [playing, setPlaying] = useState(false);
 
   const { balloons, maxBalloon, maxDist, balloonError } = useBalloons();
-  const { fires } = useFires();
+  const { fires, fireIndexRef } = useFires();
 
   const { map, selectedBalloon, balloonFCRef, selectBalloonByIndex } = useMap(
     mapContainerRef,
     fires,
+    fireIndexRef,
     balloons
   );
 

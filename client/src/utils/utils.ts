@@ -60,3 +60,22 @@ export function normailzeLineCoords(
 
   return adjusted;
 }
+
+export function subdivideSegment(
+  start: [number, number],
+  end: [number, number],
+  maxStepKm: number
+): [number, number][] {
+  // approximate distance in km between start and end
+  const dx = end[0] - start[0];
+  const dy = end[1] - start[1];
+  const approxDistanceKm = Math.sqrt(dx * dx + dy * dy) * 111; // rough conversion: 1 deg ≈ 111 km
+  const steps = Math.max(1, Math.ceil(approxDistanceKm / maxStepKm));
+
+  const coords: [number, number][] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    coords.push([start[0] + t * dx, start[1] + t * dy]);
+  }
+  return coords;
+}

@@ -6,8 +6,8 @@ export type BalloonPoint = {
 };
 
 export type FireRecord = {
-  latitude: string;
-  longitude: string;
+  latitude: number;
+  longitude: number;
   acq_date: string;
   acq_time: string;
   confidence: string;
