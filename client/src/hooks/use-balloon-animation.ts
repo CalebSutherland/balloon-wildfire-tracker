@@ -12,7 +12,6 @@ interface UseBalloonAnimationParams {
   balloonFCRef: React.RefObject<GeoJSON.FeatureCollection | null>;
   balloons: Record<string, BalloonPoint[]> | null;
   selectedBalloonIndex: number | null;
-  tracking: boolean;
 }
 
 export function useBalloonAnimation({
@@ -22,7 +21,6 @@ export function useBalloonAnimation({
   balloonFCRef,
   balloons,
   selectedBalloonIndex,
-  tracking,
 }: UseBalloonAnimationParams) {
   const timeRef = useRef(23);
   const rafRef = useRef<number | null>(null);
@@ -50,8 +48,6 @@ export function useBalloonAnimation({
       const features = createInterpolatedFeatures({
         fractionalHour,
         balloons,
-        selectedBalloonIndex,
-        trackingMode: tracking,
       });
 
       balloonFCRef.current = { type: "FeatureCollection", features };
@@ -80,7 +76,7 @@ export function useBalloonAnimation({
         }
       }
     },
-    [balloons, selectedBalloonIndex, tracking, map]
+    [balloons, selectedBalloonIndex, map]
   );
 
   useEffect(() => {

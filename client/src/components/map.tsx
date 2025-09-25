@@ -16,14 +16,11 @@ export default function Map() {
   const { balloons, maxBalloon, maxDist, balloonError } = useBalloons();
   const { fires } = useFires();
 
-  const {
-    map,
-    selectedBalloon,
-    balloonFCRef,
-    selectBalloonByIndex,
-    tracking,
-    handleTracking,
-  } = useMap(mapContainerRef, fires, balloons);
+  const { map, selectedBalloon, balloonFCRef, selectBalloonByIndex } = useMap(
+    mapContainerRef,
+    fires,
+    balloons
+  );
 
   const selectedBalloonIndex = selectedBalloon
     ? Number((selectedBalloon as any).properties.index)
@@ -35,7 +32,6 @@ export default function Map() {
     balloonFCRef,
     balloons,
     selectedBalloonIndex,
-    tracking,
   });
 
   const hour = pad(Math.floor(time) % 24);
@@ -56,8 +52,6 @@ export default function Map() {
           balloons={balloons}
           hour={hour}
           selectedBalloonIndex={selectedBalloonIndex}
-          tracking={tracking}
-          handleTracking={handleTracking}
         />
 
         <div style={{ color: "white" }}>
