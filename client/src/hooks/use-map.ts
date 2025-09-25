@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import type { BalloonPoint, FC, FireRecord } from "../types/types";
-import { normailzeLineCoords, subdivideSegment } from "../utils/utils";
-import * as geokdbush from "geokdbush";
+import type { BalloonPoint, FireRecord } from "../types/types";
 import type KDBush from "kdbush";
+import { useBalloons } from "./use-balloons";
+import useFires from "./use-fires";
+import usePath from "./use-path";
 
 export function useMap(
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -12,12 +13,34 @@ export function useMap(
   balloons: Record<string, BalloonPoint[]>
 ) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const balloonFCRef = useRef<GeoJSON.FeatureCollection | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const [selectedBalloon, setSelectedBalloon] =
     useState<mapboxgl.TargetFeature | null>(null);
   const selectedBalloonRef = useRef<mapboxgl.TargetFeature | null>(null);
+
+  function selectBalloonByIndex(index: number) {
+    if (!mapRef.current) return;
+
+    const sourceId = "points";
+
+    if (selectedBalloonRef.current) {
+      mapRef.current.setFeatureState(selectedBalloonRef.current, {
+        selected: false,
+      });
+    }
+
+    mapRef.current.setFeatureState(
+      { source: sourceId, id: index },
+      { selected: true }
+    );
+
+    const feature =
+      balloonFCRef.current?.features.find((f) => f.id === index) ?? null;
+    setSelectedBalloon(feature as mapboxgl.TargetFeature | null);
+
+    selectedBalloonRef.current = feature as mapboxgl.TargetFeature | null;
+  }
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -218,162 +241,10 @@ export function useMap(
     return () => map.remove();
   }, [containerRef]);
 
-  //Add fire data points
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !fires.length) return;
-
-    const fireFeatures: FC = {
-      type: "FeatureCollection",
-      features: fires.map((fire, i) => ({
-        type: "Feature",
-        id: i,
-        geometry: {
-          type: "Point",
-          coordinates: [fire.longitude, fire.latitude],
-        },
-        properties: {
-          confidence: fire.confidence,
-          acq_date: fire.acq_date,
-          acq_time: fire.acq_time,
-          frp: parseFloat(fire.frp),
-          timestamp: fire.timestamp,
-        },
-      })),
-    };
-
-    const source = mapRef.current.getSource("fires") as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData(fireFeatures);
-    }
-  }, [mapLoaded, fires, mapRef]);
-
-  //Add balloon data points
-  useEffect(() => {
-    if (!mapLoaded || !balloons || !mapRef.current) return;
-
-    const balloonFeatures: FC = {
-      type: "FeatureCollection",
-      features: balloons["23"].map((b) => ({
-        type: "Feature",
-        id: b.index,
-        geometry: {
-          type: "Point",
-          coordinates: [b.lon, b.lat],
-        },
-        properties: {
-          index: b.index,
-          lon: b.lon,
-          lat: b.lat,
-          alt: b.alt,
-        },
-      })),
-    };
-
-    balloonFCRef.current = balloonFeatures;
-
-    const source = mapRef.current.getSource("points") as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData(balloonFeatures);
-    }
-  }, [mapLoaded, balloons, mapRef]);
-
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !selectedBalloon) return;
-
-    const index = fireIndexRef.current; // KDBush | null
-    const source = mapRef.current.getSource(
-      "balloonPath"
-    ) as mapboxgl.GeoJSONSource;
-    if (!source) return;
-
-    const balloonIndex = selectedBalloon.id as number;
-
-    // collect balloon coordinates
-    const coords: [number, number][] = [];
-    for (const hour of Object.keys(balloons).sort()) {
-      const point = balloons[hour]?.[balloonIndex];
-      if (point) coords.push([point.lon, point.lat]);
-    }
-    const adjusted = normailzeLineCoords(coords);
-    if (adjusted.length < 2) {
-      source.setData({ type: "FeatureCollection", features: [] });
-      return;
-    }
-
-    const maxStepKm = 10; // maximum distance per subsegment
-    const segments: GeoJSON.Feature<GeoJSON.LineString>[] = [];
-
-    for (let i = 0; i < adjusted.length - 1; i++) {
-      const start = adjusted[i];
-      const end = adjusted[i + 1];
-
-      const subpoints = subdivideSegment(start, end, maxStepKm);
-
-      for (let j = 0; j < subpoints.length - 1; j++) {
-        const subStart = subpoints[j];
-        const subEnd = subpoints[j + 1];
-
-        const midLon = (subStart[0] + subEnd[0]) / 2;
-        const midLat = (subStart[1] + subEnd[1]) / 2;
-
-        let nearestDistanceKm = Infinity;
-        if (index && fires.length) {
-          const nearestIds = geokdbush.around(
-            index,
-            midLon,
-            midLat,
-            1,
-            50
-          ) as number[];
-          if (nearestIds.length > 0) {
-            const nearestFire = fires[nearestIds[0]];
-            nearestDistanceKm = geokdbush.distance(
-              midLon,
-              midLat,
-              nearestFire.longitude,
-              nearestFire.latitude
-            );
-          }
-        }
-
-        let color = "#00ff00";
-        if (nearestDistanceKm <= 5) color = "#ff0000";
-        else if (nearestDistanceKm <= 20) color = "#ff9b20";
-        else if (nearestDistanceKm <= 50) color = "#fff93d";
-
-        segments.push({
-          type: "Feature",
-          geometry: { type: "LineString", coordinates: [subStart, subEnd] },
-          properties: { color },
-        });
-      }
-    }
-
-    source.setData({ type: "FeatureCollection", features: segments });
-  }, [mapLoaded, balloons, selectedBalloon, fires]);
-
-  function selectBalloonByIndex(index: number) {
-    if (!mapRef.current) return;
-
-    const sourceId = "points";
-
-    if (selectedBalloonRef.current) {
-      mapRef.current.setFeatureState(selectedBalloonRef.current, {
-        selected: false,
-      });
-    }
-
-    mapRef.current.setFeatureState(
-      { source: sourceId, id: index },
-      { selected: true }
-    );
-
-    const feature =
-      balloonFCRef.current?.features.find((f) => f.id === index) ?? null;
-    setSelectedBalloon(feature as mapboxgl.TargetFeature | null);
-
-    selectedBalloonRef.current = feature as mapboxgl.TargetFeature | null;
-  }
+  // hooks to load data layers
+  const { balloonFCRef } = useBalloons(mapRef, mapLoaded, balloons);
+  useFires(mapRef, mapLoaded, fires);
+  usePath(mapRef, mapLoaded, selectedBalloon, balloons, fires, fireIndexRef);
 
   return {
     map: mapRef,
