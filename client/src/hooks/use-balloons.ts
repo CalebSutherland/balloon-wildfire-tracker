@@ -1,77 +1,41 @@
-import { useEffect, useState } from "react";
-import type { BalloonPoint } from "../types/types";
-import { clampLat, haversine } from "../utils/utils";
+import { useEffect, useRef } from "react";
+import type { BalloonPoint, FC } from "../types/types";
 
-export function useBalloons() {
-  const [balloons, setBalloons] = useState<Record<string, BalloonPoint[]>>({});
-  const [distances, setDistances] = useState<Record<number, number>>({});
-  const [maxBalloon, setMaxBalloon] = useState<number | null>(null);
-  const [maxDist, setMaxDist] = useState(0);
-  const [balloonError, setBalloonError] = useState(false);
+export function useBalloons(
+  mapRef: React.RefObject<mapboxgl.Map | null>,
+  mapLoaded: boolean,
+  balloons: Record<string, BalloonPoint[]>
+) {
+  const balloonFCRef = useRef<GeoJSON.FeatureCollection | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/treasure")
-      .then((res) => res.json())
-      .then((data: Record<string, number[][]>) => {
-        const objData: Record<string, BalloonPoint[]> = {};
-        for (const h in data) {
-          if (!data[h] || data[h].length === 0) {
-            setBalloonError(true);
-            objData[h] = [];
-          } else {
-            objData[h] = data[h].map(([lat, lon, alt], i) => ({
-              lat,
-              lon,
-              alt,
-              index: i,
-            }));
-          }
-        }
-        setBalloons(objData);
+    if (!mapLoaded || !balloons || !mapRef.current) return;
 
-        // compute distances
-        const hours = Object.keys(objData).sort();
-        if (hours.length === 0) return;
+    const balloonFeatures: FC = {
+      type: "FeatureCollection",
+      features: balloons["23"].map((b) => ({
+        type: "Feature",
+        id: b.index,
+        geometry: {
+          type: "Point",
+          coordinates: [b.lon, b.lat],
+        },
+        properties: {
+          index: b.index,
+          lon: b.lon,
+          lat: b.lat,
+          alt: b.alt,
+        },
+      })),
+    };
 
-        const numBalloons = objData[hours[0]].length;
-        const distMap: Record<number, number> = {};
+    balloonFCRef.current = balloonFeatures;
 
-        for (let i = 0; i < numBalloons; i++) {
-          let total = 0;
-          for (let h = 1; h < hours.length; h++) {
-            const prev = objData[hours[h - 1]][i];
-            const curr = objData[hours[h]][i];
-            if (prev && curr) {
-              const prevLat = clampLat(prev.lat);
-              const currLat = clampLat(curr.lat);
-              total += haversine(prevLat, prev.lon, currLat, curr.lon);
-            }
-          }
-          distMap[i] = total;
-        }
+    const source = mapRef.current.getSource("points") as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData(balloonFeatures);
+    }
+  }, [mapLoaded, balloons, mapRef]);
 
-        // find max
-        let maxIndex: number | null = null;
-        let maxValue = -Infinity;
-        for (const [i, d] of Object.entries(distMap)) {
-          if (d > maxValue) {
-            maxValue = d;
-            maxIndex = Number(i);
-          }
-        }
-
-        setDistances(distMap);
-        setMaxBalloon(maxIndex);
-        setMaxDist(maxValue);
-      })
-      .catch(console.error);
-  }, []);
-
-  return {
-    balloons,
-    distances,
-    maxBalloon,
-    maxDist,
-    balloonError,
-  };
+  return { balloonFCRef };
 }

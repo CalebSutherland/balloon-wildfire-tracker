@@ -2,19 +2,19 @@ import { useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import { useMap } from "../hooks/use-map";
-import { useBalloons } from "../hooks/use-balloons";
+import { getBalloons } from "../api/get-balloons";
 import { useBalloonAnimation } from "../hooks/use-balloon-animation";
 import { Controls } from "./controls";
 import { BalloonOverlay } from "./balloon-overlay";
 import { pad } from "../utils/utils";
-import { useFires } from "../hooks/use-fires";
+import { getFires } from "../api/get-fires";
 
 export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  const { balloons, maxBalloon, maxDist, balloonError } = useBalloons();
-  const { fires, fireIndexRef } = useFires();
+  const { balloons, maxBalloon, maxDist, balloonError } = getBalloons();
+  const { fires, fireIndexRef } = getFires();
 
   const { map, selectedBalloon, balloonFCRef, selectBalloonByIndex } = useMap(
     mapContainerRef,
