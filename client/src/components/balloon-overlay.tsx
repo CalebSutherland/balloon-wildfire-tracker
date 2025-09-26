@@ -1,58 +1,73 @@
 import type { BalloonPoint } from "../types/types";
+import BalloonIcon from "./balloon-icon";
+import "./balloon-overlay.css";
 
 interface BalloonOverlayProps {
   balloons: Record<string, BalloonPoint[]>;
   hour: string;
   selectedBalloonIndex: number | null;
+  distances: Record<number, number>;
+  maxAltitudes: Record<number, number>;
+  fireCounts: Record<number, number>;
 }
 
 export function BalloonOverlay({
   balloons,
   hour,
   selectedBalloonIndex,
+  distances,
+  maxAltitudes,
+  fireCounts,
 }: BalloonOverlayProps) {
-  if (selectedBalloonIndex == null) return null;
-
-  const currentBalloon = balloons[hour][selectedBalloonIndex];
+  let currentBalloon;
+  if (selectedBalloonIndex != null) {
+    currentBalloon = balloons[hour][selectedBalloonIndex];
+  }
 
   return (
-    <div
-      className="map-overlay"
-      style={{
-        position: "absolute",
-        right: 0,
-        top: 0,
-        width: "230px",
-        padding: "10px",
-        color: "#1a2224",
-        fontSize: "12px",
-        lineHeight: "20px",
-        fontFamily: "sans-serif",
-        zIndex: 10,
-      }}
-    >
-      <div
-        className="map-overlay-inner"
-        style={{
-          background: "#fff",
-          padding: "10px",
-          borderRadius: "3px",
-          width: "100%",
-          height: "100%",
-        }}
-      >
-        <b>Balloon {selectedBalloonIndex}</b>
-        <hr />
-        <li>
-          <b>Lat</b>: {currentBalloon.lat.toFixed(2)}
-        </li>
-        <li>
-          <b>Lon</b>: {currentBalloon.lon.toFixed(2)}
-        </li>
-        <li>
-          <b>Alt</b>: {currentBalloon.alt.toFixed(2)}
-        </li>
+    <div className="overlay-wrapper">
+      <div className="balloon-icon-wrapper">
+        <BalloonIcon
+          color={currentBalloon ? "red" : "grey"}
+          index={currentBalloon ? currentBalloon.index : null}
+        />
       </div>
+
+      {currentBalloon ? (
+        <div>
+          <b>Balloon {selectedBalloonIndex}</b>
+          <hr />
+
+          <li>
+            <b>Latitude</b>: {currentBalloon.lat.toFixed(2)}
+          </li>
+          <li>
+            <b>Longitude</b>: {currentBalloon.lon.toFixed(2)}
+          </li>
+          <li>
+            <b>Altitude</b>: {currentBalloon.alt.toFixed(2)} km
+          </li>
+          <li>
+            <b>Distance Traveled</b>:{" "}
+            {(distances[currentBalloon.index] / 1000).toFixed(0)} km
+          </li>
+          <li>
+            <b>Average Speed</b>:{" "}
+            {(distances[currentBalloon.index] / 1000 / 24).toFixed(0)} km/h
+          </li>
+          <li>
+            <b>Highest Altitude</b>:{" "}
+            {maxAltitudes[currentBalloon.index].toFixed(2)} km
+          </li>
+          <li>
+            <b>Fire Points in Range</b>: {fireCounts[currentBalloon.index]}
+          </li>
+        </div>
+      ) : (
+        <div>
+          <p>No Balloon Selected</p>
+        </div>
+      )}
     </div>
   );
 }
