@@ -11,8 +11,10 @@ export default function usePath(
   selectedBalloon: TargetFeature | null,
   balloons: Record<string, BalloonPoint[]>,
   fires: FireRecord[],
-  fireIndexRef: React.RefObject<KDBush | null>
+  fireIndexRef: React.RefObject<KDBush | null>,
+  setFireCounts: React.Dispatch<React.SetStateAction<Record<number, number>>>
 ) {
+  const fireIds = new Set<number>();
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || !selectedBalloon) return;
 
@@ -40,6 +42,8 @@ export default function usePath(
     const maxStepKm = zoom < 4 ? 50 : 10;
     const segments: GeoJSON.Feature<GeoJSON.LineString>[] = [];
 
+    let fireCount = 0;
+
     for (let i = 0; i < adjusted.length - 1; i++) {
       const start = adjusted[i];
       const end = adjusted[i + 1];
@@ -59,9 +63,13 @@ export default function usePath(
             index,
             midLon,
             midLat,
-            1,
+            Infinity,
             50
           ) as number[];
+
+          for (const id of nearestIds) {
+            fireIds.add(id);
+          }
           if (nearestIds.length > 0) {
             const nearestFire = fires[nearestIds[0]];
             nearestDistanceKm = geokdbush.distance(
@@ -85,7 +93,13 @@ export default function usePath(
         });
       }
     }
+    fireCount = fireIds.size;
+    setFireCounts((prev) => ({
+      ...prev,
+      [balloonIndex]: fireCount,
+    }));
 
     source.setData({ type: "FeatureCollection", features: segments });
+    console.log(`Balloon ${balloonIndex} fire count:`, fireCount);
   }, [mapLoaded, balloons, selectedBalloon, fires]);
 }

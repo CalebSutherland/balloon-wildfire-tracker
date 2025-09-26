@@ -14,6 +14,7 @@ export function useMap(
 ) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [fireCounts, setFireCounts] = useState<Record<number, number>>({});
 
   const [selectedBalloon, setSelectedBalloon] =
     useState<mapboxgl.TargetFeature | null>(null);
@@ -244,7 +245,15 @@ export function useMap(
   // hooks to load data layers
   const { balloonFCRef } = useBalloons(mapRef, mapLoaded, balloons);
   useFires(mapRef, mapLoaded, fires);
-  usePath(mapRef, mapLoaded, selectedBalloon, balloons, fires, fireIndexRef);
+  usePath(
+    mapRef,
+    mapLoaded,
+    selectedBalloon,
+    balloons,
+    fires,
+    fireIndexRef,
+    setFireCounts
+  );
 
   return {
     map: mapRef,
@@ -254,5 +263,6 @@ export function useMap(
     selectedBalloonRef,
     balloonFCRef,
     selectBalloonByIndex,
+    fireCounts,
   };
 }

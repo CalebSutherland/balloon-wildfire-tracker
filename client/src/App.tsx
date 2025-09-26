@@ -14,15 +14,24 @@ function App() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  const { balloons, maxBalloon, maxDist, balloonError } = getBalloons();
+  const {
+    balloons,
+    distances,
+    maxDist,
+    maxDistBalloon,
+    maxAltitudes,
+    balloonError,
+  } = getBalloons();
+
   const { fires, fireIndexRef } = getFires();
 
-  const { map, selectedBalloon, balloonFCRef, selectBalloonByIndex } = useMap(
-    mapContainerRef,
-    fires,
-    fireIndexRef,
-    balloons
-  );
+  const {
+    map,
+    selectedBalloon,
+    balloonFCRef,
+    selectBalloonByIndex,
+    fireCounts,
+  } = useMap(mapContainerRef, fires, fireIndexRef, balloons);
 
   const selectedBalloonIndex = selectedBalloon
     ? Number((selectedBalloon as any).properties.index)
@@ -60,16 +69,19 @@ function App() {
             balloons={balloons}
             hour={hour}
             selectedBalloonIndex={selectedBalloonIndex}
+            distances={distances}
+            maxAltitudes={maxAltitudes}
+            fireCounts={fireCounts}
           />
         </div>
         <div style={{ color: "white" }}>
           <h3>Balloon Stats</h3>
           <span style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <p>
-              Furthest Flight: {maxDist.toFixed(0)}m Balloon #{maxBalloon}
+              Furthest Flight: {maxDist.toFixed(0)}m Balloon #{maxDistBalloon}
             </p>
-            {maxBalloon && (
-              <button onClick={() => selectBalloonByIndex(maxBalloon)}>
+            {maxDistBalloon && (
+              <button onClick={() => selectBalloonByIndex(maxDistBalloon)}>
                 Select
               </button>
             )}

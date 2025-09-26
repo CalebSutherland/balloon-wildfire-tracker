@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import type { BalloonPoint } from "../types/types";
-import { clampLat, haversine } from "../utils/utils";
+import { calculateBalloonStats } from "@/utils/balloon-stats";
 
 export function getBalloons() {
   const [balloons, setBalloons] = useState<Record<string, BalloonPoint[]>>({});
   const [distances, setDistances] = useState<Record<number, number>>({});
-  const [maxBalloon, setMaxBalloon] = useState<number | null>(null);
+  const [maxDistBalloon, setMaxDistBalloon] = useState<number | null>(null);
   const [maxDist, setMaxDist] = useState(0);
+  const [maxAltitudes, setMaxAltitudes] = useState<Record<number, number>>({});
+  const [maxAltBalloon, setMaxAltBalloon] = useState<number | null>(null);
+  const [maxAlt, setMaxAlt] = useState(0);
   const [balloonError, setBalloonError] = useState(false);
 
   useEffect(() => {
@@ -29,40 +32,21 @@ export function getBalloons() {
         }
         setBalloons(objData);
 
-        // compute distances
-        const hours = Object.keys(objData).sort();
-        if (hours.length === 0) return;
-
-        const numBalloons = objData[hours[0]].length;
-        const distMap: Record<number, number> = {};
-
-        for (let i = 0; i < numBalloons; i++) {
-          let total = 0;
-          for (let h = 1; h < hours.length; h++) {
-            const prev = objData[hours[h - 1]][i];
-            const curr = objData[hours[h]][i];
-            if (prev && curr) {
-              const prevLat = clampLat(prev.lat);
-              const currLat = clampLat(curr.lat);
-              total += haversine(prevLat, prev.lon, currLat, curr.lon);
-            }
-          }
-          distMap[i] = total;
-        }
-
-        // find max
-        let maxIndex: number | null = null;
-        let maxValue = -Infinity;
-        for (const [i, d] of Object.entries(distMap)) {
-          if (d > maxValue) {
-            maxValue = d;
-            maxIndex = Number(i);
-          }
-        }
+        const {
+          distMap,
+          maxDistIndex,
+          maxDistValue,
+          maxAltMap,
+          maxAltIndex,
+          maxAltValue,
+        } = calculateBalloonStats(objData);
 
         setDistances(distMap);
-        setMaxBalloon(maxIndex);
-        setMaxDist(maxValue);
+        setMaxDistBalloon(maxDistIndex);
+        setMaxDist(maxDistValue);
+        setMaxAltitudes(maxAltMap);
+        setMaxAltBalloon(maxAltIndex);
+        setMaxAlt(maxAltValue);
       })
       .catch(console.error);
   }, []);
@@ -70,8 +54,11 @@ export function getBalloons() {
   return {
     balloons,
     distances,
-    maxBalloon,
+    maxDistBalloon,
     maxDist,
+    maxAltitudes,
+    maxAltBalloon,
+    maxAlt,
     balloonError,
   };
 }
