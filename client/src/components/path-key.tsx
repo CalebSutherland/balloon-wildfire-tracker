@@ -1,4 +1,4 @@
-import "./path-key.css";
+import "./css/path-key.css";
 
 export default function pathKey() {
   const colors = [

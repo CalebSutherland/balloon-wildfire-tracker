@@ -1,5 +1,5 @@
 import { Slider } from "@/components/ui/slider";
-import "./controls.css";
+import "./css/controls.css";
 
 interface ControlsProps {
   time: number;

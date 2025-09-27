@@ -63,13 +63,8 @@ function App() {
             {/* mapbox map */}
             <div
               ref={mapContainerRef}
-              style={{ height: "100%", width: "100%" }}
+              style={{ minHeight: "30rem", width: "100%" }}
             />
-
-            <div className="keys-wrapper">
-              <FireKey />
-              <PathKey />
-            </div>
           </div>
 
           <BalloonOverlay
@@ -81,7 +76,12 @@ function App() {
             fireCounts={fireCounts}
           />
         </div>
-        <div style={{ color: "white", paddingTop: "10rem" }}>
+        <div className="keys-wrapper">
+          <FireKey />
+          <PathKey />
+        </div>
+        <h2 className="header">Balloon Leaderboard</h2>
+        {/* <div style={{ color: "white" }}>
           <h3>Balloon Stats</h3>
           <span style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <p>
@@ -93,9 +93,7 @@ function App() {
               </button>
             )}
           </span>
-
-          <p>Highest Altitude: </p>
-        </div>
+        </div> */}
       </div>
     );
   } else {

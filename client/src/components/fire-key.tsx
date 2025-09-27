@@ -1,4 +1,4 @@
-import "./fire-key.css";
+import "./css/fire-key.css";
 
 export default function fireKey() {
   const colors = [
