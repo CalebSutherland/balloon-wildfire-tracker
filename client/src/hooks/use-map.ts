@@ -26,10 +26,15 @@ export function useMap(
     const sourceId = "points";
 
     if (selectedBalloonRef.current) {
-      mapRef.current.setFeatureState(selectedBalloonRef.current, {
-        selected: false,
-      });
+      mapRef.current.setFeatureState(
+        { source: sourceId, id: selectedBalloonRef.current.id! },
+        {
+          selected: false,
+        }
+      );
     }
+    setSelectedBalloon(null);
+    selectedBalloonRef.current = null;
 
     mapRef.current.setFeatureState(
       { source: sourceId, id: index },

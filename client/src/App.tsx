@@ -11,6 +11,7 @@ import { pad } from "./utils/utils";
 import { getFires } from "./api/get-fires";
 import FireKey from "./components/fire-key";
 import PathKey from "./components/path-key";
+import LeaderBoard from "./components/leaderboard";
 
 function App() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -48,6 +49,14 @@ function App() {
   });
 
   const hour = pad(Math.floor(time) % 24);
+
+  const sortedDistances = Object.entries(distances)
+    .map(([idx, dist]) => [Number(idx), dist] as [number, number])
+    .sort((a, b) => b[1] - a[1]);
+
+  const sortedAlts = Object.entries(maxAltitudes)
+    .map(([idx, alt]) => [Number(idx), alt] as [number, number])
+    .sort((a, b) => b[1] - a[1]);
   if (!balloonError) {
     return (
       <div className="app-wrapper">
@@ -76,11 +85,25 @@ function App() {
             fireCounts={fireCounts}
           />
         </div>
+
         <div className="keys-wrapper">
           <FireKey />
           <PathKey />
         </div>
+
         <h2 className="header">Balloon Leaderboard</h2>
+
+        <LeaderBoard
+          balloons={sortedDistances}
+          mode="dist"
+          selectBalloonByIndex={selectBalloonByIndex}
+        />
+        <LeaderBoard
+          balloons={sortedAlts}
+          mode="alt"
+          selectBalloonByIndex={selectBalloonByIndex}
+        />
+
         {/* <div style={{ color: "white" }}>
           <h3>Balloon Stats</h3>
           <span style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
