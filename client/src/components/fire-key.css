@@ -1,0 +1,28 @@
+.fire-key-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: fit-content;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+}
+
+.fire-key-title {
+  font-weight: 600;
+  padding-bottom: 1rem;
+  font-size: 0.8rem;
+  align-self: center;
+}
+
+.fire-key {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+  row-gap: 0.5rem;
+}
+
+.fire-key-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

@@ -82,7 +82,7 @@ export function useMap(
             1,
             "#ca0000", // 1–3 hours
             3,
-            "#ff4400", // 3–6 hours
+            "#ff7300", // 3–6 hours
             6,
             "#ffab3d", // 6–12 hours
             12,

@@ -1,0 +1,27 @@
+.path-key-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: fit-content;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+}
+
+.path-key-title {
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  font-size: 0.8rem;
+  align-self: center;
+}
+
+.path-key {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.path-key-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
