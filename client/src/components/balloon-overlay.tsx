@@ -1,6 +1,6 @@
 import type { BalloonPoint } from "../types/types";
 import BalloonIcon from "./balloon-icon";
-import "./balloon-overlay.css";
+import "./css/balloon-overlay.css";
 
 interface BalloonOverlayProps {
   balloons: Record<string, BalloonPoint[]>;
