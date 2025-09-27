@@ -50,13 +50,6 @@ function App() {
 
   const hour = pad(Math.floor(time) % 24);
 
-  const sortedDistances = Object.entries(distances)
-    .map(([idx, dist]) => [Number(idx), dist] as [number, number])
-    .sort((a, b) => b[1] - a[1]);
-
-  const sortedAlts = Object.entries(maxAltitudes)
-    .map(([idx, alt]) => [Number(idx), alt] as [number, number])
-    .sort((a, b) => b[1] - a[1]);
   if (!balloonError) {
     return (
       <div className="app-wrapper">
@@ -94,14 +87,11 @@ function App() {
         <h2 className="header">Balloon Leaderboard</h2>
 
         <LeaderBoard
-          balloons={sortedDistances}
-          mode="dist"
+          distances={distances}
+          maxAltitudes={maxAltitudes}
           selectBalloonByIndex={selectBalloonByIndex}
-        />
-        <LeaderBoard
-          balloons={sortedAlts}
-          mode="alt"
-          selectBalloonByIndex={selectBalloonByIndex}
+          playing={playing}
+          setPlaying={setPlaying}
         />
 
         {/* <div style={{ color: "white" }}>

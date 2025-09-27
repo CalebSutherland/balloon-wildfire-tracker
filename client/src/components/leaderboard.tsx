@@ -7,21 +7,62 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import "./css/leaderboard.css";
 import { Button } from "./ui/button";
+import { useEffect, useState } from "react";
+import SortIcon from "./sort-icon";
 
 interface LeaderBoardProps {
-  balloons: [number, number][];
-  mode: "dist" | "alt";
+  distances: Record<number, number>;
+  maxAltitudes: Record<number, number>;
   selectBalloonByIndex: (index: number) => void;
+  playing: boolean;
+  setPlaying: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function LeaderBoard({
-  balloons,
-  mode,
+  distances,
+  maxAltitudes,
   selectBalloonByIndex,
+  playing,
+  setPlaying,
 }: LeaderBoardProps) {
-  if (balloons.length < 3) {
+  const [mode, setMode] = useState("dist");
+  const [entries, setEntries] = useState(20);
+  const [ascending, setAscending] = useState(false);
+
+  const sortedDistances = Object.entries(distances)
+    .map(([idx, dist]) => [Number(idx), dist] as [number, number])
+    .sort((a, b) => (ascending ? a[1] - b[1] : b[1] - a[1]));
+
+  const sortedAlts = Object.entries(maxAltitudes)
+    .map(([idx, alt]) => [Number(idx), alt] as [number, number])
+    .sort((a, b) => (ascending ? a[1] - b[1] : b[1] - a[1]));
+
+  let balloons = mode === "dist" ? sortedDistances : sortedAlts;
+
+  function loadEntries() {
+    if (playing) {
+      setPlaying(false);
+    }
+    if (entries < 500) {
+      setEntries((prev) => prev + 20);
+    }
+  }
+
+  useEffect(() => {
+    if (!playing) return;
+    setEntries(20);
+  }, [playing]);
+
+  if (sortedDistances.length < 3) {
     return <p style={{ color: "white" }}>Loading leaderboard...</p>;
   }
   return (
@@ -47,12 +88,40 @@ export default function LeaderBoard({
             <TableHead className="w-[100px]">Rank</TableHead>
             <TableHead>ID</TableHead>
             <TableHead>
-              {mode === "dist" ? "Total Distance" : "Max Altitude"}
+              <div className="leaderboard-filter">
+                <Select
+                  value={mode}
+                  onValueChange={(value) => {
+                    setMode(value);
+                    setEntries(20);
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Stat" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dist">Total Distance</SelectItem>
+                    <SelectItem value="alt">Max Altitude</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setAscending((prev) => !prev);
+                    setEntries(20);
+                  }}
+                >
+                  <SortIcon />
+                </Button>
+              </div>
             </TableHead>
+            <TableHead></TableHead>
+            <TableHead className="text-right"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {balloons.slice(0, 10).map((d, i) => {
+          {balloons.slice(0, entries).map((d, i) => {
+            let rank = ascending ? 1000 - i : i + 1;
             const id = d[0];
             let stat;
             if (mode === "dist") {
@@ -62,7 +131,7 @@ export default function LeaderBoard({
             }
             return (
               <TableRow key={id}>
-                <TableCell className="font-medium">{i + 1}</TableCell>
+                <TableCell className="font-medium">{rank}</TableCell>
                 <TableCell>{id}</TableCell>
                 <TableCell>{stat} km</TableCell>
                 <TableCell className="text-right">
@@ -84,6 +153,10 @@ export default function LeaderBoard({
           })}
         </TableBody>
       </Table>
+      <div className="entries-controls">
+        {entries > 20 && <Button onClick={() => setEntries(20)}>Hide</Button>}
+        {entries < 500 && <Button onClick={loadEntries}>Load More</Button>}
+      </div>
     </div>
   );
 }

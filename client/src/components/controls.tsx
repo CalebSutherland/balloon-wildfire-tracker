@@ -5,7 +5,7 @@ interface ControlsProps {
   time: number;
   handleTimeChange: (t: number) => void;
   playing: boolean;
-  setPlaying: (playing: boolean) => void;
+  setPlaying: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function Controls({
