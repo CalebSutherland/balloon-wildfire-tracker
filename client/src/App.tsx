@@ -9,6 +9,8 @@ import { Controls } from "./components/controls";
 import { BalloonOverlay } from "./components/balloon-overlay";
 import { pad } from "./utils/utils";
 import { getFires } from "./api/get-fires";
+import FireKey from "./components/fire-key";
+import PathKey from "./components/path-key";
 
 function App() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +65,11 @@ function App() {
               ref={mapContainerRef}
               style={{ height: "100%", width: "100%" }}
             />
+
+            <div className="keys-wrapper">
+              <FireKey />
+              <PathKey />
+            </div>
           </div>
 
           <BalloonOverlay
@@ -74,7 +81,7 @@ function App() {
             fireCounts={fireCounts}
           />
         </div>
-        <div style={{ color: "white" }}>
+        <div style={{ color: "white", paddingTop: "10rem" }}>
           <h3>Balloon Stats</h3>
           <span style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <p>
