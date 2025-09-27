@@ -1,6 +1,6 @@
 import "./css/fire-key.css";
 
-export default function fireKey() {
+export default function FireKey() {
   const colors = [
     { color: "#9f1818", label: "<1hr" },
     { color: "#ca0000", label: "1-3hrs" },

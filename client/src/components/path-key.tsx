@@ -1,6 +1,6 @@
 import "./css/path-key.css";
 
-export default function pathKey() {
+export default function PathKey() {
   const colors = [
     { color: "#ff0000", label: "Very Close (<5 km)" },
     { color: "#ff9b20", label: "Close (5-20 km)" },
