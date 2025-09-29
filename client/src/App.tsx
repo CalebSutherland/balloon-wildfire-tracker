@@ -17,14 +17,7 @@ function App() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  const {
-    balloons,
-    distances,
-    maxDist,
-    maxDistBalloon,
-    maxAltitudes,
-    balloonError,
-  } = getBalloons();
+  const { balloons, distances, maxAltitudes, balloonError } = getBalloons();
 
   const { fires, fireIndexRef } = getFires();
 

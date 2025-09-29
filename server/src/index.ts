@@ -3,65 +3,80 @@ import cors from "cors";
 import { parse } from "csv-parse/sync";
 import dotenv from "dotenv";
 
-type AvailabilityRecord = {
-  data_id: string;
-  min_date: string;
-  max_date: string;
-};
-
 dotenv.config();
 
 const app = express();
-
 const PORT = 5000;
 
-const MAP_KEY = process.env.FIRMS_MAP_KEY;
+const MAP_KEY = process.env.FIRMS_MAP_KEY!;
 const SATELLITE = "VIIRS_SNPP_NRT";
 const REGION = "world";
 const DAY_RANGE = 2;
 
 app.use(cors({ origin: "http://localhost:5173" }));
 
-const balloons: Record<string, number[][]> = {};
+let balloonsCache: Record<string, number[][]> = {};
+let firesCache: any[] = [];
 
-async function loadBalloons() {
+async function fetchBalloons(): Promise<Record<string, number[][]>> {
+  const newBalloons: Record<string, number[][]> = {};
+
   for (let i = 0; i < 24; i++) {
     const hour = String(i).padStart(2, "0");
     const url = `https://a.windbornesystems.com/treasure/${hour}.json`;
 
-    try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} at ${url}`);
-      }
-      balloons[hour] = await res.json();
-    } catch (err) {
-      console.error(`Failed to load balloon data for hour ${hour}:`, err);
-      balloons[hour] = [];
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} at ${url}`);
     }
+
+    newBalloons[hour] = await res.json();
+  }
+
+  return newBalloons;
+}
+
+async function fetchFires(): Promise<any[]> {
+  const dataUrl = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/${SATELLITE}/${REGION}/${DAY_RANGE}`;
+  const fireRes = await fetch(dataUrl);
+  if (!fireRes.ok) throw new Error("Failed to fetch FIRMS fire data");
+
+  const fireCsv = await fireRes.text();
+  return parse(fireCsv, { columns: true, skip_empty_lines: true });
+}
+
+async function updateBalloons() {
+  try {
+    const newData = await fetchBalloons();
+    balloonsCache = newData;
+    console.log("Balloons cache updated");
+  } catch (err) {
+    console.error("Failed to update balloons cache (keeping old cache):", err);
   }
 }
 
-await loadBalloons();
+async function updateFires() {
+  try {
+    const newData = await fetchFires();
+    firesCache = newData;
+    console.log("Fires cache updated");
+  } catch (err) {
+    console.error("Error updating fires cache:", err);
+  }
+}
+
+await updateBalloons();
+await updateFires();
+
+setInterval(updateBalloons, 5 * 60 * 1000);
+setInterval(updateFires, 5 * 60 * 1000);
 
 app.get("/api/treasure", (_req, res) => {
-  res.json(balloons);
+  res.json(balloonsCache);
 });
 
-app.get("/api/wildfires", async (_req, res) => {
-  try {
-    const dataUrl = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/${SATELLITE}/${REGION}/${DAY_RANGE}`;
-    const fireRes = await fetch(dataUrl);
-    if (!fireRes.ok) throw new Error("Failed to fetch FIRMS fire data");
-
-    const fireCsv = await fireRes.text();
-    const records = parse(fireCsv, { columns: true, skip_empty_lines: true });
-
-    res.json(records);
-  } catch (err) {
-    console.error("Error fetching FIRMS data:", err);
-    res.status(500).json({ error: "Unable to fetch FIRMS data" });
-  }
+app.get("/api/wildfires", (_req, res) => {
+  res.json(firesCache);
 });
 
 app.listen(PORT, () => {
