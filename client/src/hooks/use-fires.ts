@@ -5,11 +5,19 @@ export default function useFires(
   mapRef: React.RefObject<mapboxgl.Map | null>,
   mapLoaded: boolean,
   fires: FireRecord[],
-  loadingFires: boolean
+  loadingFires: boolean,
+  fireError: boolean
 ) {
   //Add fire data points
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !fires.length || loadingFires) return;
+    if (
+      !mapLoaded ||
+      !mapRef.current ||
+      !fires.length ||
+      loadingFires ||
+      fireError
+    )
+      return;
 
     const fireFeatures: FC = {
       type: "FeatureCollection",
@@ -34,5 +42,5 @@ export default function useFires(
     if (source) {
       source.setData(fireFeatures);
     }
-  }, [mapLoaded, fires, mapRef, loadingFires]);
+  }, [mapLoaded, fires, mapRef, loadingFires, fireError]);
 }

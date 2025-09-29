@@ -34,7 +34,9 @@ function App() {
     fireIndexRef,
     balloons,
     loadingBalloons,
-    loadingFires
+    loadingFires,
+    balloonError,
+    fireError
   );
 
   const selectedBalloonIndex = selectedBalloon
@@ -86,13 +88,15 @@ function App() {
           <p>Render backend spinning up, please be patient.</p>
         )}
         {balloonError ? (
-          <p>Failed to load balloon data.</p>
+          <p>
+            Failed to load balloon data. Try refreshing the page in 30 seconds.
+          </p>
         ) : (
           loadingBalloons && <p>Balloon data loading...</p>
         )}
 
         {fireError ? (
-          <p>Faild to load fire data.</p>
+          <p>Faild to load fire data. Try refreshing the page in 30 seconds.</p>
         ) : (
           loadingFires && <p>Fire data loading...</p>
         )}

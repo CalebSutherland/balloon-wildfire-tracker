@@ -47,37 +47,55 @@ async function fetchFires(): Promise<any[]> {
   return parse(fireCsv, { columns: true, skip_empty_lines: true });
 }
 
-async function updateBalloons() {
+async function scheduleUpdate(
+  updateFn: () => Promise<void>,
+  name: string,
+  intervalMs = 10 * 60 * 1000,
+  retryMs = 30 * 1000
+) {
   try {
-    const newData = await fetchBalloons();
-    balloonsCache = newData;
-    console.log("Balloons cache updated");
+    await updateFn();
+    console.log(`${name} cache updated successfully`);
+    setTimeout(
+      () => scheduleUpdate(updateFn, name, intervalMs, retryMs),
+      intervalMs
+    );
   } catch (err) {
-    console.error("Failed to update balloons cache (keeping old cache):", err);
+    console.error(
+      `Error updating ${name} cache, retrying in ${retryMs / 1000}s:`,
+      err
+    );
+    setTimeout(
+      () => scheduleUpdate(updateFn, name, intervalMs, retryMs),
+      retryMs
+    );
   }
+}
+
+async function updateBalloons() {
+  const newData = await fetchBalloons();
+  balloonsCache = newData;
 }
 
 async function updateFires() {
-  try {
-    const newData = await fetchFires();
-    firesCache = newData;
-    console.log("Fires cache updated");
-  } catch (err) {
-    console.error("Error updating fires cache:", err);
-  }
+  const newData = await fetchFires();
+  firesCache = newData;
 }
 
-await updateBalloons();
-await updateFires();
-
-setInterval(updateBalloons, 10 * 60 * 1000);
-setInterval(updateFires, 10 * 60 * 1000);
+scheduleUpdate(updateBalloons, "Balloons");
+scheduleUpdate(updateFires, "Fires");
 
 app.get("/api/treasure", (_req, res) => {
+  if (!balloonsCache || Object.keys(balloonsCache).length === 0) {
+    return res.status(503).json({ error: "Balloon data not available yet" });
+  }
   res.json(balloonsCache);
 });
 
 app.get("/api/wildfires", (_req, res) => {
+  if (!firesCache || firesCache.length === 0) {
+    return res.status(503).json({ error: "Fire data not available yet" });
+  }
   res.json(firesCache);
 });
 

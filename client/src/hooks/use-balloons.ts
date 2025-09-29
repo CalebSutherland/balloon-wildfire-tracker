@@ -5,12 +5,18 @@ export function useBalloons(
   mapRef: React.RefObject<mapboxgl.Map | null>,
   mapLoaded: boolean,
   balloons: Record<string, BalloonPoint[]>,
-  loadingBalloons: boolean
+  loadingBalloons: boolean,
+  balloonError: boolean
 ) {
   const balloonFCRef = useRef<GeoJSON.FeatureCollection | null>(null);
 
   useEffect(() => {
-    if (!mapLoaded || !balloons || !mapRef.current || loadingBalloons) return;
+    console.log(balloonError);
+  }, [balloonError]);
+
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || loadingBalloons || balloonError)
+      return;
 
     const balloonFeatures: FC = {
       type: "FeatureCollection",
@@ -36,7 +42,7 @@ export function useBalloons(
     if (source) {
       source.setData(balloonFeatures);
     }
-  }, [mapLoaded, balloons, mapRef, loadingBalloons]);
+  }, [mapLoaded, balloons, mapRef, loadingBalloons, balloonError]);
 
   return { balloonFCRef };
 }

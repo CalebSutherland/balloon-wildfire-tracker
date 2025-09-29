@@ -12,7 +12,9 @@ export function useMap(
   fireIndexRef: React.RefObject<KDBush | null>,
   balloons: Record<string, BalloonPoint[]>,
   loadingBalloons: boolean,
-  loadingFires: boolean
+  loadingFires: boolean,
+  balloonError: boolean,
+  fireError: boolean
 ) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -254,9 +256,10 @@ export function useMap(
     mapRef,
     mapLoaded,
     balloons,
-    loadingBalloons
+    loadingBalloons,
+    balloonError
   );
-  useFires(mapRef, mapLoaded, fires, loadingFires);
+  useFires(mapRef, mapLoaded, fires, loadingFires, fireError);
   usePath(
     mapRef,
     mapLoaded,
