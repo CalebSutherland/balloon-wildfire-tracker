@@ -140,7 +140,7 @@ export default function LeaderBoard({
                     onClick={() => {
                       selectBalloonByIndex(id);
                       window.scrollTo({
-                        top: 0,
+                        top: 100,
                         behavior: "smooth",
                       });
                     }}

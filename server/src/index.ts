@@ -70,8 +70,8 @@ async function updateFires() {
 await updateBalloons();
 await updateFires();
 
-setInterval(updateBalloons, 5 * 60 * 1000);
-setInterval(updateFires, 5 * 60 * 1000);
+setInterval(updateBalloons, 10 * 60 * 1000);
+setInterval(updateFires, 10 * 60 * 1000);
 
 app.get("/api/treasure", (_req, res) => {
   res.json(balloonsCache);

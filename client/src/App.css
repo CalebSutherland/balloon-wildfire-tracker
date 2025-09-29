@@ -13,7 +13,7 @@
   flex-direction: column;
   width: 100%;
   max-width: 1280px;
-  padding: 0 2rem;
+  padding: 0 2rem 2rem;
   box-sizing: border-box;
 }
 
