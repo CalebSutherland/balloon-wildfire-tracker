@@ -12,8 +12,10 @@ export function getBalloons() {
   const [maxAlt, setMaxAlt] = useState(0);
   const [balloonError, setBalloonError] = useState(false);
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
-    fetch("http://localhost:5000/api/treasure")
+    fetch(`${apiUrl}/api/treasure`)
       .then((res) => res.json())
       .then((data: Record<string, number[][]>) => {
         const objData: Record<string, BalloonPoint[]> = {};

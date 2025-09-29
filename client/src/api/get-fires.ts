@@ -12,10 +12,12 @@ export function getFires() {
   const [loading, setLoading] = useState(true);
   const fireIndexRef = useRef<KDBush | null>(null);
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     async function fetchFires() {
       try {
-        const res = await fetch("http://localhost:5000/api/wildfires");
+        const res = await fetch(`${apiUrl}/api/wildfires`);
         if (!res.ok) throw new Error("Failed to fetch fire data");
         const data: FireRecord[] = await res.json();
 

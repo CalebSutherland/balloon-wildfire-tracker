@@ -6,14 +6,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT;
+
+const clientUrl = process.env.CLIENT_URL;
 
 const MAP_KEY = process.env.FIRMS_MAP_KEY!;
 const SATELLITE = "VIIRS_SNPP_NRT";
 const REGION = "world";
 const DAY_RANGE = 2;
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: clientUrl }));
 
 let balloonsCache: Record<string, number[][]> = {};
 let firesCache: any[] = [];
@@ -80,5 +82,5 @@ app.get("/api/wildfires", (_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
