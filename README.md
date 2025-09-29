@@ -1,69 +1,36 @@
-# React + TypeScript + Vite
+# WindBorne Fire Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A small web app that visualizes weather balloons and recent wildfire detections (NASA FIRMS) over the past 24 hours. The repository contains a Vite + React TypeScript client and an Express TypeScript server that caches and exposes external data for the client.
 
-Currently, two official plugins are available:
+## Highlights
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Live map visualization of balloon positions over 24 hours
+- Fire detections from NASA FIRMS parsed and served as JSON
+- Simple server-side caching and periodic updates
 
-## Expanding the ESLint configuration
+## Repository layout
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- `client/` — Vite + React TypeScript front-end
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+  - `src/` — application source (main entry: `src/main.tsx`, UI in `src/App.tsx`)
+  - `package.json` — client scripts and dependencies
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- `server/` — Express TypeScript back-end
+  - `src/index.ts` — server entry (fetches balloon & fire data and exposes API endpoints)
+  - `package.json` — server scripts and dependencies
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Server API
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The server fetches and caches data from two external sources and exposes two JSON endpoints used by the client.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- GET /api/treasure — returns the balloon cache, an object keyed by hour strings `"00"`..`"23"`. Each value is the raw balloon data fetched from the external service (arrays of coordinate-like samples).
+- GET /api/wildfires — returns an array parsed from NASA FIRMS CSV (fields depend on FIRMS columns).
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The server periodically refreshes this cache (every 10 minutes by default).
+
+These endpoints are implemented in `server/src/index.ts`.
+
+## Data sources
+
+- Balloon data: the server fetches 24 hourly JSON files from `https://a.windbornesystems.com/treasure/{hour}.json` provided by WindBorne Systems.
+- Wildfire data: the server fetches a FIRMS CSV from NASA (`https://firms.modaps.eosdis.nasa.gov/`) and parses it to JSON.
