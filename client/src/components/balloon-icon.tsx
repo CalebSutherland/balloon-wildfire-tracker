@@ -45,7 +45,7 @@ const BalloonIcon: React.FC<BalloonIconProps> = ({
         />
 
         {/* Balloon index text */}
-        {index && (
+        {index !== null && (
           <text
             x="256"
             y="220"

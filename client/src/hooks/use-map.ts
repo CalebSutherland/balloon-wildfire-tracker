@@ -32,9 +32,9 @@ export function useMap(
           selected: false,
         }
       );
+      setSelectedBalloon(null);
+      selectedBalloonRef.current = null;
     }
-    setSelectedBalloon(null);
-    selectedBalloonRef.current = null;
 
     mapRef.current.setFeatureState(
       { source: sourceId, id: index },
