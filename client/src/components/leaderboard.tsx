@@ -1,4 +1,4 @@
-import BalloonIcon from "./balloon-icon";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -14,10 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import "./css/leaderboard.css";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
+import BalloonIcon from "./balloon-icon";
 import SortIcon from "./sort-icon";
+import "./css/leaderboard.css";
 
 interface LeaderBoardProps {
   distances: Record<number, number>;
@@ -62,22 +63,31 @@ export default function LeaderBoard({
     setEntries(20);
   }, [playing]);
 
-  if (sortedDistances.length < 3) {
-    return <p style={{ color: "white" }}>Loading leaderboard...</p>;
-  }
   return (
     <div className="leaderboard-wrapper">
       <div className="podium">
         <div className="podium-step second">
-          <BalloonIcon size={180} index={balloons[1][0]} color="#4a90e2" />
+          <BalloonIcon
+            size={180}
+            index={balloons[1] ? balloons[1][0] : null}
+            color="#4a90e2"
+          />
           <div className="podium-block"></div>
         </div>
         <div className="podium-step first">
-          <BalloonIcon size={180} index={balloons[0][0]} color="#ff5a5f" />
+          <BalloonIcon
+            size={180}
+            index={balloons[0] ? balloons[0][0] : null}
+            color="#ff5a5f"
+          />
           <div className="podium-block"></div>
         </div>
         <div className="podium-step third">
-          <BalloonIcon size={180} index={balloons[2][0]} color="#7ed321" />
+          <BalloonIcon
+            size={180}
+            index={balloons[2] ? balloons[2][0] : null}
+            color="#7ed321"
+          />
           <div className="podium-block"></div>
         </div>
       </div>
@@ -120,42 +130,63 @@ export default function LeaderBoard({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {balloons.slice(0, entries).map((d, i) => {
-            let rank = ascending ? 1000 - i : i + 1;
-            const id = d[0];
-            let stat;
-            if (mode === "dist") {
-              stat = (d[1] / 1000).toFixed(0);
-            } else {
-              stat = d[1].toFixed(6);
-            }
-            return (
-              <TableRow key={id}>
-                <TableCell className="font-medium">{rank}</TableCell>
-                <TableCell>{id}</TableCell>
-                <TableCell>{stat} km</TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      selectBalloonByIndex(id);
-                      window.scrollTo({
-                        top: 100,
-                        behavior: "smooth",
-                      });
-                    }}
-                  >
-                    Select
-                  </Button>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {balloons.length > 3
+            ? balloons.slice(0, entries).map((d, i) => {
+                let rank = ascending ? 1000 - i : i + 1;
+                const id = d[0];
+                let stat;
+                if (mode === "dist") {
+                  stat = (d[1] / 1000).toFixed(0);
+                } else {
+                  stat = d[1].toFixed(6);
+                }
+                return (
+                  <TableRow key={id}>
+                    <TableCell className="font-medium">{rank}</TableCell>
+                    <TableCell>{id}</TableCell>
+                    <TableCell>{stat} km</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          selectBalloonByIndex(id);
+                          window.scrollTo({
+                            top: 100,
+                            behavior: "smooth",
+                          });
+                        }}
+                      >
+                        Select
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            : Array.from({ length: 20 }).map((_, i) => (
+                <TableRow key={`skeleton-${i}`}>
+                  <TableCell className="font-medium">
+                    <Skeleton className="h-[10px] w-[30px] rounded-full" />
+                  </TableCell>
+                  <TableCell className="skeleton">
+                    <Skeleton className="h-[10px] w-[30px] rounded-full" />
+                  </TableCell>
+                  <TableCell className="skeleton">
+                    <Skeleton className="h-[10px] w-[180px] rounded-full" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button size="sm" disabled>
+                      Select
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
         </TableBody>
       </Table>
       <div className="entries-controls">
         {entries > 20 && <Button onClick={() => setEntries(20)}>Hide</Button>}
-        {entries < 500 && <Button onClick={loadEntries}>Load More</Button>}
+        {balloons.length > 3 && entries < 500 && (
+          <Button onClick={loadEntries}>Load More</Button>
+        )}
       </div>
     </div>
   );
