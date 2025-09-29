@@ -11,6 +11,16 @@ interface BalloonOverlayProps {
   fireCounts: Record<number, number>;
 }
 
+function formatLat(lat: number) {
+  const direction = lat >= 0 ? "N" : "S";
+  return `${Math.abs(lat).toFixed(2)}° ${direction}`;
+}
+
+function formatLon(lon: number) {
+  const direction = lon >= 0 ? "E" : "W";
+  return `${Math.abs(lon).toFixed(2)}° ${direction}`;
+}
+
 export function BalloonOverlay({
   balloons,
   hour,
@@ -30,8 +40,8 @@ export function BalloonOverlay({
   if (selectedBalloonIndex != null) {
     currentBalloon = balloons[hour][selectedBalloonIndex];
 
-    latitude = currentBalloon.lat.toFixed(2);
-    longitude = currentBalloon.lon.toFixed(2);
+    latitude = formatLat(parseFloat(currentBalloon.lat.toFixed(2)));
+    longitude = formatLon(parseFloat(currentBalloon.lon.toFixed(2)));
     altitude = currentBalloon.alt.toFixed(2);
     maxAlt = maxAltitudes[currentBalloon.index].toFixed(2);
     distance = (distances[currentBalloon.index] / 1000).toFixed(0);
@@ -52,7 +62,7 @@ export function BalloonOverlay({
           <div className="balloon-stats-wrapper">
             <div className="stats-header">
               <p>
-                <b>Fire Points Within 50km of Path</b>:{" "}
+                <b>Fire Points Within 50 km of Path</b>:{" "}
                 {fireCounts[currentBalloon.index]}
               </p>
             </div>

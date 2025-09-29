@@ -1,6 +1,4 @@
-import "./App.css";
 import { useRef, useState } from "react";
-import "mapbox-gl/dist/mapbox-gl.css";
 
 import { useMap } from "./hooks/use-map";
 import { getBalloons } from "./api/get-balloons";
@@ -12,6 +10,8 @@ import { getFires } from "./api/get-fires";
 import FireKey from "./components/fire-key";
 import PathKey from "./components/path-key";
 import LeaderBoard from "./components/leaderboard";
+import "./App.css";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 function App() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
