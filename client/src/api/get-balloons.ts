@@ -37,7 +37,10 @@ export function getBalloons() {
         setDistances(distMap);
         setMaxAltitudes(maxAltMap);
       })
-      .catch(console.error);
+      .catch(() => {
+        console.error;
+        setBalloonError(true);
+      });
   }, []);
 
   return {

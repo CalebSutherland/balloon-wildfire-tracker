@@ -20,7 +20,7 @@ function App() {
   const { balloons, distances, maxAltitudes, loadingBalloons, balloonError } =
     getBalloons();
 
-  const { fires, fireIndexRef, loadingFires } = getFires();
+  const { fires, fireIndexRef, loadingFires, fireError } = getFires();
 
   const {
     map,
@@ -51,61 +51,69 @@ function App() {
 
   const hour = pad(Math.floor(time) % 24);
 
-  if (!balloonError) {
-    return (
-      <div className="app-wrapper">
-        <h1 className="header">WindBorne Fire Tracker</h1>
+  return (
+    <div className="app-wrapper">
+      <h1 className="header">WindBorne Fire Tracker</h1>
 
-        <div className="display-wrapper">
-          <div className="map-wrapper">
-            <Controls
-              time={time}
-              handleTimeChange={handleTimeChange}
-              playing={playing}
-              setPlaying={setPlaying}
-            />
+      <div className="display-wrapper">
+        <div className="map-wrapper">
+          <Controls
+            time={time}
+            handleTimeChange={handleTimeChange}
+            playing={playing}
+            setPlaying={setPlaying}
+          />
 
-            {/* mapbox map */}
-            <div
-              ref={mapContainerRef}
-              style={{ minHeight: "30rem", width: "100%" }}
-            />
-          </div>
-
-          <BalloonOverlay
-            balloons={balloons}
-            hour={hour}
-            selectedBalloonIndex={selectedBalloonIndex}
-            distances={distances}
-            maxAltitudes={maxAltitudes}
-            fireCounts={fireCounts}
+          {/* mapbox map */}
+          <div
+            ref={mapContainerRef}
+            style={{ minHeight: "30rem", width: "100%" }}
           />
         </div>
 
-        <div>
-          {loadingBalloons && <p>Balloon data loading...</p>}
-          {loadingFires && <p>Fire data loading...</p>}
-        </div>
-
-        <div className="keys-wrapper">
-          <FireKey />
-          <PathKey />
-        </div>
-
-        <h2 className="header">Balloon Leaderboard</h2>
-
-        <LeaderBoard
+        <BalloonOverlay
+          balloons={balloons}
+          hour={hour}
+          selectedBalloonIndex={selectedBalloonIndex}
           distances={distances}
           maxAltitudes={maxAltitudes}
-          selectBalloonByIndex={selectBalloonByIndex}
-          playing={playing}
-          setPlaying={setPlaying}
+          fireCounts={fireCounts}
         />
       </div>
-    );
-  } else {
-    return <p>Balloon Error</p>;
-  }
+
+      <div>
+        {loadingBalloons && loadingFires && (
+          <p>Render backend spinning up, please be patient.</p>
+        )}
+        {balloonError ? (
+          <p>Failed to load balloon data.</p>
+        ) : (
+          loadingBalloons && <p>Balloon data loading...</p>
+        )}
+
+        {fireError ? (
+          <p>Faild to load fire data.</p>
+        ) : (
+          loadingFires && <p>Fire data loading...</p>
+        )}
+      </div>
+
+      <div className="keys-wrapper">
+        <FireKey />
+        <PathKey />
+      </div>
+
+      <h2 className="header">Balloon Leaderboard</h2>
+
+      <LeaderBoard
+        distances={distances}
+        maxAltitudes={maxAltitudes}
+        selectBalloonByIndex={selectBalloonByIndex}
+        playing={playing}
+        setPlaying={setPlaying}
+      />
+    </div>
+  );
 }
 
 export default App;
