@@ -2,6 +2,8 @@
 
 A small web app that visualizes weather balloons and recent wildfire detections (NASA FIRMS) over the past 24 hours. The repository contains a Vite + React TypeScript client and an Express TypeScript server that caches and exposes external data for the client.
 
+Try it here: [https://balloon-wildfire-tracker.vercel.app/](https://balloon-wildfire-tracker.vercel.app/)
+
 ## Highlights
 
 - Live map visualization of balloon positions over 24 hours
