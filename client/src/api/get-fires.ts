@@ -9,7 +9,7 @@ type FireWithTime = FireRecord & {
 
 export function getFires() {
   const [fires, setFires] = useState<FireWithTime[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingFires, setLoadingFires] = useState(true);
   const fireIndexRef = useRef<KDBush | null>(null);
 
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -41,15 +41,14 @@ export function getFires() {
 
         fireIndexRef.current = idx;
         setFires(processed);
+        setLoadingFires(false);
       } catch (err) {
         console.error("Error fetching fires:", err);
-      } finally {
-        setLoading(false);
       }
     }
 
     fetchFires();
   }, []);
 
-  return { fires, loading, fireIndexRef };
+  return { fires, loadingFires, fireIndexRef };
 }

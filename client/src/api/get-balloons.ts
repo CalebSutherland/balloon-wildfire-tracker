@@ -6,6 +6,7 @@ export function getBalloons() {
   const [balloons, setBalloons] = useState<Record<string, BalloonPoint[]>>({});
   const [distances, setDistances] = useState<Record<number, number>>({});
   const [maxAltitudes, setMaxAltitudes] = useState<Record<number, number>>({});
+  const [loadingBalloons, setLoadingBalloons] = useState(true);
   const [balloonError, setBalloonError] = useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -29,6 +30,7 @@ export function getBalloons() {
           }
         }
         setBalloons(objData);
+        setLoadingBalloons(false);
 
         const { distMap, maxAltMap } = calculateBalloonStats(objData);
 
@@ -43,5 +45,6 @@ export function getBalloons() {
     distances,
     maxAltitudes,
     balloonError,
+    loadingBalloons,
   };
 }

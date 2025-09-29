@@ -12,11 +12,20 @@ export default function usePath(
   balloons: Record<string, BalloonPoint[]>,
   fires: FireRecord[],
   fireIndexRef: React.RefObject<KDBush | null>,
-  setFireCounts: React.Dispatch<React.SetStateAction<Record<number, number>>>
+  setFireCounts: React.Dispatch<React.SetStateAction<Record<number, number>>>,
+  loadingBalloons: boolean,
+  loadingFires: boolean
 ) {
   const fireIds = new Set<number>();
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !selectedBalloon) return;
+    if (
+      !mapLoaded ||
+      !mapRef.current ||
+      !selectedBalloon ||
+      loadingBalloons ||
+      loadingFires
+    )
+      return;
 
     const index = fireIndexRef.current; // KDBush | null
     const source = mapRef.current.getSource(
@@ -101,5 +110,12 @@ export default function usePath(
 
     source.setData({ type: "FeatureCollection", features: segments });
     console.log(`Balloon ${balloonIndex} fire count:`, fireCount);
-  }, [mapLoaded, balloons, selectedBalloon, fires]);
+  }, [
+    mapLoaded,
+    balloons,
+    selectedBalloon,
+    fires,
+    loadingBalloons,
+    loadingFires,
+  ]);
 }

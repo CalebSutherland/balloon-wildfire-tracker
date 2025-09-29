@@ -17,9 +17,10 @@ function App() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  const { balloons, distances, maxAltitudes, balloonError } = getBalloons();
+  const { balloons, distances, maxAltitudes, loadingBalloons, balloonError } =
+    getBalloons();
 
-  const { fires, fireIndexRef } = getFires();
+  const { fires, fireIndexRef, loadingFires } = getFires();
 
   const {
     map,
@@ -27,7 +28,14 @@ function App() {
     balloonFCRef,
     selectBalloonByIndex,
     fireCounts,
-  } = useMap(mapContainerRef, fires, fireIndexRef, balloons);
+  } = useMap(
+    mapContainerRef,
+    fires,
+    fireIndexRef,
+    balloons,
+    loadingBalloons,
+    loadingFires
+  );
 
   const selectedBalloonIndex = selectedBalloon
     ? Number((selectedBalloon as any).properties.index)
@@ -72,6 +80,11 @@ function App() {
             maxAltitudes={maxAltitudes}
             fireCounts={fireCounts}
           />
+        </div>
+
+        <div>
+          {loadingBalloons && <p>Balloon data loading...</p>}
+          {loadingFires && <p>Fire data loading...</p>}
         </div>
 
         <div className="keys-wrapper">

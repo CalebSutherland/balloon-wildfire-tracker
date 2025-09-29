@@ -4,12 +4,13 @@ import type { BalloonPoint, FC } from "../types/types";
 export function useBalloons(
   mapRef: React.RefObject<mapboxgl.Map | null>,
   mapLoaded: boolean,
-  balloons: Record<string, BalloonPoint[]>
+  balloons: Record<string, BalloonPoint[]>,
+  loadingBalloons: boolean
 ) {
   const balloonFCRef = useRef<GeoJSON.FeatureCollection | null>(null);
 
   useEffect(() => {
-    if (!mapLoaded || !balloons || !mapRef.current) return;
+    if (!mapLoaded || !balloons || !mapRef.current || loadingBalloons) return;
 
     const balloonFeatures: FC = {
       type: "FeatureCollection",
@@ -35,7 +36,7 @@ export function useBalloons(
     if (source) {
       source.setData(balloonFeatures);
     }
-  }, [mapLoaded, balloons, mapRef]);
+  }, [mapLoaded, balloons, mapRef, loadingBalloons]);
 
   return { balloonFCRef };
 }

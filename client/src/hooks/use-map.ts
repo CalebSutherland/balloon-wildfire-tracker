@@ -10,7 +10,9 @@ export function useMap(
   containerRef: React.RefObject<HTMLDivElement | null>,
   fires: FireRecord[],
   fireIndexRef: React.RefObject<KDBush | null>,
-  balloons: Record<string, BalloonPoint[]>
+  balloons: Record<string, BalloonPoint[]>,
+  loadingBalloons: boolean,
+  loadingFires: boolean
 ) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -248,8 +250,13 @@ export function useMap(
   }, [containerRef]);
 
   // hooks to load data layers
-  const { balloonFCRef } = useBalloons(mapRef, mapLoaded, balloons);
-  useFires(mapRef, mapLoaded, fires);
+  const { balloonFCRef } = useBalloons(
+    mapRef,
+    mapLoaded,
+    balloons,
+    loadingBalloons
+  );
+  useFires(mapRef, mapLoaded, fires, loadingFires);
   usePath(
     mapRef,
     mapLoaded,
@@ -257,7 +264,9 @@ export function useMap(
     balloons,
     fires,
     fireIndexRef,
-    setFireCounts
+    setFireCounts,
+    loadingBalloons,
+    loadingFires
   );
 
   return {
