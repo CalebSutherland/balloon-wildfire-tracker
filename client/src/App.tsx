@@ -1,3 +1,27 @@
+// Main application component for the WindBorne Fire Tracker.
+//
+// Responsibilities:
+// - Initializes the Mapbox map and attaches it to a ref
+// - Fetches balloon and fire data from the backend using getBalloons and getFires
+// - Manages state for animation (playing), selected balloon, and current time
+// - Uses custom hooks:
+//   - useMap: handles map setup, selection, and fire counts
+//   - useBalloonAnimation: animates balloon positions over time
+// - Displays UI components:
+//   - Controls: slider and play/pause button for time animation
+//   - BalloonOverlay: shows stats for selected balloon (lat/lon, altitude, distance, speed, fire counts)
+//   - LeaderBoard: shows top balloons by distance or max altitude with podium and selection
+//   - FireKey and PathKey: map legends for fire points and balloon path coloring
+// - Handles loading and error states for balloon and fire data
+//
+// Layout:
+// - Header with application title
+// - Map container with Controls overlaid
+// - BalloonOverlay panel next to the map
+// - Loading/error messages displayed dynamically
+// - Fire and path keys displayed below the map
+// - Leaderboard section at the bottom
+
 import { useRef, useState } from "react";
 
 import { useMap } from "./hooks/use-map";
@@ -84,7 +108,7 @@ function App() {
       </div>
 
       <div>
-        {loadingBalloons && loadingFires && (
+        {loadingBalloons && loadingFires && !balloonError && !fireError && (
           <p>Render backend spinning up, please be patient.</p>
         )}
         {balloonError ? (

@@ -1,16 +1,14 @@
 import type { BalloonPoint } from "@/types/types";
 import { clampLat, haversine } from "./utils";
 
+// Calculates total travel distance and maximum altitude for each balloon
+// objData[hour][i] = balloon data for ith balloon at given hour
 export function calculateBalloonStats(objData: Record<string, BalloonPoint[]>) {
   const hours = Object.keys(objData).sort();
   if (hours.length === 0)
     return {
       distMap: {},
-      maxDistIndex: null,
-      maxDistValue: 0,
       maxAltMap: {},
-      maxAltIndex: null,
-      maxAltValue: 0,
     };
 
   const numBalloons = objData[hours[0]].length;
@@ -43,32 +41,8 @@ export function calculateBalloonStats(objData: Record<string, BalloonPoint[]>) {
     maxAltMap[i] = maxAlt;
   }
 
-  // find max distance
-  let maxDistIndex: number | null = null;
-  let maxDistValue = -Infinity;
-  for (const [i, d] of Object.entries(distMap)) {
-    if (d > maxDistValue) {
-      maxDistValue = d;
-      maxDistIndex = Number(i);
-    }
-  }
-
-  // find max altitude
-  let maxAltIndex: number | null = null;
-  let maxAltValue = -Infinity;
-  for (const [i, alt] of Object.entries(maxAltMap)) {
-    if (alt > maxAltValue) {
-      maxAltValue = alt;
-      maxAltIndex = Number(i);
-    }
-  }
-
   return {
     distMap,
-    maxDistIndex,
-    maxDistValue,
     maxAltMap,
-    maxAltIndex,
-    maxAltValue,
   };
 }

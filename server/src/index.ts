@@ -2,6 +2,7 @@ import express, { type Request, type Response } from "express";
 import cors from "cors";
 import { parse } from "csv-parse/sync";
 import dotenv from "dotenv";
+import type { FireRecord } from "./types.js";
 
 dotenv.config();
 
@@ -10,6 +11,7 @@ const PORT = process.env.PORT;
 
 const clientUrl = process.env.CLIENT_URL;
 
+// NASA FIRMS API variables
 const MAP_KEY = process.env.FIRMS_MAP_KEY!;
 const SATELLITE = "VIIRS_SNPP_NRT";
 const REGION = "world";
@@ -20,6 +22,9 @@ app.use(cors({ origin: clientUrl }));
 let balloonsCache: Record<string, number[][]> = {};
 let firesCache: any[] = [];
 
+// Gets all 24 hours of balloon data from WindBorne
+// balloons[hour] = list of all 1000 balloons at that hour
+// balloons[hour][i] = data of ith balloon [latitude, longitude, altitude]
 async function fetchBalloons(): Promise<Record<string, number[][]>> {
   const newBalloons: Record<string, number[][]> = {};
 
@@ -38,15 +43,31 @@ async function fetchBalloons(): Promise<Record<string, number[][]>> {
   return newBalloons;
 }
 
-async function fetchFires(): Promise<any[]> {
+// Gets FIRMS fire data for the configured region and time range
+// Returns an array of FireRecord objects, one per detected fire
+// Each FireRecord includes metadata such as date, time, lat/lon, brightness, etc.
+async function fetchFires(): Promise<FireRecord[]> {
   const dataUrl = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/${SATELLITE}/${REGION}/${DAY_RANGE}`;
   const fireRes = await fetch(dataUrl);
   if (!fireRes.ok) throw new Error("Failed to fetch FIRMS fire data");
 
   const fireCsv = await fireRes.text();
-  return parse(fireCsv, { columns: true, skip_empty_lines: true });
+
+  const records: FireRecord[] = parse(fireCsv, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  return records;
 }
 
+// Repeatedly updates the data caches on a fixed interval
+// - updateFn: the async function that performs the update
+// - name: label used in log messages
+// - intervalMs: time between successful updates (default 10 minutes)
+// - retryMs: time before retrying after a failed update (default 30 seconds)
+// On success: schedules the next run after intervalMs
+// On failure: logs error and retries after retryMs
 async function scheduleUpdate(
   updateFn: () => Promise<void>,
   name: string,
@@ -85,6 +106,11 @@ async function updateFires() {
 scheduleUpdate(updateBalloons, "Balloons");
 scheduleUpdate(updateFires, "Fires");
 
+// Returns the cached balloon data for all 24 hours
+// - GET /api/treasure
+// - Response format: Record<string, number[][]>
+//   balloons[hour] = list of 1000 balloons at that hour
+//   balloons[hour][i] = [latitude, longitude, altitude]
 app.get("/api/treasure", (_req, res) => {
   if (!balloonsCache || Object.keys(balloonsCache).length === 0) {
     return res.status(503).json({ error: "Balloon data not available yet" });
@@ -92,6 +118,9 @@ app.get("/api/treasure", (_req, res) => {
   res.json(balloonsCache);
 });
 
+// Returns the cached FIRMS wildfire data
+// - GET /api/wildfires
+// - Response format: FireRecord[]
 app.get("/api/wildfires", (_req, res) => {
   if (!firesCache || firesCache.length === 0) {
     return res.status(503).json({ error: "Fire data not available yet" });

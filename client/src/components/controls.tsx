@@ -1,3 +1,16 @@
+// Displays the time slider and play/pause controls for balloon animation.
+//
+// Props:
+// - time: Current simulation time (0–23 hours)
+// - handleTimeChange: Callback to update time when the slider is moved
+// - playing: Boolean indicating whether animation is playing
+// - setPlaying: Function to toggle play/pause state
+//
+// Features:
+// - Slider shows the last 24 hours with labels for "24h", "12h", and "Now"
+// - Slider updates the displayed time in reverse (0 = now, 23 = 24 hours ago)
+// - Play/Pause button toggles animation playback
+
 import { Slider } from "@/components/ui/slider";
 import "./css/controls.css";
 

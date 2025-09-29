@@ -1,3 +1,20 @@
+// Displays an overlay panel showing detailed stats for a selected balloon.
+//
+// Props:
+// - balloons[hour][i]: Balloon data for each hour and index
+// - hour: Current hour to display balloons from
+// - selectedBalloonIndex: Index of the currently selected balloon, or null
+// - distances[i]: Total distance traveled by balloon i
+// - maxAltitudes[i]: Maximum altitude reached by balloon i
+// - fireCounts[i]: Number of fires within 50 km of balloon i's path
+//
+// Features:
+// - Shows a balloon icon (red if selected, grey otherwise)
+// - Displays latitude and longitude in N/S and E/W format
+// - Shows current altitude, peak altitude, distance traveled, and average speed
+// - Displays number of nearby fires along balloon's path
+// - Shows "No Balloon Selected" message if no balloon is selected
+
 import type { BalloonPoint } from "../types/types";
 import BalloonIcon from "./balloon-icon";
 import "./css/balloon-overlay.css";

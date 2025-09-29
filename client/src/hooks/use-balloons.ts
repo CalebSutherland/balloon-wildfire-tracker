@@ -1,3 +1,18 @@
+// Custom React hook to manage balloon points on the Mapbox map
+// - mapRef: ref to the Mapbox map instance
+// - mapLoaded: boolean indicating whether the map has finished loading
+// - balloons: record of BalloonPoint arrays keyed by hour
+// - loadingBalloons: boolean indicating if balloon data is still loading
+// - balloonError: boolean indicating if there was an error fetching balloons
+//
+// Responsibilities:
+// - Converts the latest hour's balloons (e.g., "23") into a GeoJSON FeatureCollection
+// - Updates the Mapbox "points" source with balloon features
+// - Provides a ref to the current balloon FeatureCollection
+//
+// Returns:
+// - balloonFCRef: ref to the current GeoJSON FeatureCollection of balloon points
+
 import { useEffect, useRef } from "react";
 import type { BalloonPoint, FC } from "../types/types";
 

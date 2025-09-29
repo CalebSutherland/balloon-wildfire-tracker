@@ -1,3 +1,23 @@
+// Custom React hook to animate balloons on a Mapbox map over time
+// - playing: whether the animation is currently running
+// - speedHrsPerSec: animation speed in hours per second (default 2.0)
+// - map: ref to the Mapbox map instance
+// - balloonFCRef: ref to the current GeoJSON FeatureCollection of balloons
+// - balloons: record of BalloonPoint arrays keyed by hour
+// - selectedBalloonIndex: index of the balloon to track with the camera
+//
+// Responsibilities:
+// - Animates balloons by interpolating positions between hourly data
+// - Updates the balloon GeoJSON source on the map for each frame
+// - Updates the internal "time" state representing the fractional hour
+// - Smoothly moves the camera to follow the selected balloon (if any)
+// - Uses requestAnimationFrame for smooth 60 FPS animation
+// - Allows manual time updates via handleTimeChange
+//
+// Returns:
+// - time: current fractional hour of the animation
+// - handleTimeChange: function to manually set the animation time
+
 import { useRef, useCallback, useState, useEffect } from "react";
 import {
   createInterpolatedFeatures,

@@ -1,3 +1,24 @@
+// Custom React hook to draw the path of a selected balloon and compute nearby fires
+// - mapRef: ref to the Mapbox map instance
+// - mapLoaded: boolean indicating whether the map has finished loading
+// - selectedBalloon: the currently selected balloon feature
+// - balloons: record of BalloonPoint arrays keyed by hour
+// - fires: array of FireRecord objects
+// - fireIndexRef: ref to KDBush spatial index for fast nearest-fire queries
+// - setFireCounts: setter to update fire counts near balloons
+// - loadingBalloons / loadingFires: boolean flags for loading state
+//
+// Responsibilities:
+// - Collects the selected balloon's coordinates across all hours
+// - Normalizes and subdivides the path for smoother lines
+// - Queries nearest fires along each segment using geokdbush
+// - Assigns colors to path segments based on proximity to fires
+//   - red (<5 km), orange (<20 km), yellow (<50 km), green (>=50 km)
+// - Updates the Mapbox "balloonPath" source with colored line segments
+// - Updates the fire count for the balloon
+//
+// Returns: nothing directly; side effects update the map and fire counts
+
 import type { TargetFeature } from "mapbox-gl";
 import type { BalloonPoint, FireRecord } from "../types/types";
 import { useEffect } from "react";

@@ -1,3 +1,28 @@
+// Custom React hook to initialize and manage the Mapbox map
+// - containerRef: ref to the HTML container for the map
+// - fires: array of FireRecord objects
+// - fireIndexRef: ref to a KDBush spatial index of fire locations
+// - balloons: record of BalloonPoint arrays keyed by hour
+// - loadingBalloons / loadingFires: boolean flags for loading state
+// - balloonError / fireError: boolean flags for fetch errors
+//
+// Responsibilities:
+// - Initializes Mapbox map and adds navigation & fullscreen controls
+// - Adds Mapbox sources & layers for fires, balloon paths, and balloon points
+// - Handles feature selection & highlighting for balloon points
+// - Clears selection & paths when clicking outside points
+// - Integrates balloon, fire, and path hooks to update layers dynamically
+//
+// Returns an object with:
+// - map: ref to the Mapbox map instance
+// - mapLoaded: boolean — true once the map has loaded
+// - selectedBalloon: currently selected balloon feature
+// - setSelectedBalloon: setter for selected balloon
+// - selectedBalloonRef: ref to currently selected balloon feature
+// - balloonFCRef: ref to the GeoJSON feature collection for balloons
+// - selectBalloonByIndex: function to programmatically select a balloon by index
+// - fireCounts: record mapping balloon indices to nearby fire counts
+
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import type { BalloonPoint, FireRecord } from "../types/types";
@@ -52,6 +77,7 @@ export function useMap(
     selectedBalloonRef.current = feature as mapboxgl.TargetFeature | null;
   }
 
+  // Initialize map and data layers
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -172,6 +198,7 @@ export function useMap(
         },
       });
 
+      // Mouse interactions
       map.addInteraction("click", {
         type: "click",
         target: { layerId: "points-layer" },
@@ -251,7 +278,7 @@ export function useMap(
     return () => map.remove();
   }, [containerRef]);
 
-  // hooks to load data layers
+  // Hooks to load data layers
   const { balloonFCRef } = useBalloons(
     mapRef,
     mapLoaded,
@@ -259,7 +286,9 @@ export function useMap(
     loadingBalloons,
     balloonError
   );
+
   useFires(mapRef, mapLoaded, fires, loadingFires, fireError);
+
   usePath(
     mapRef,
     mapLoaded,

@@ -1,14 +1,19 @@
+// Clamp latitude to valid range for mapping (-85° to 85°)
 export const clampLat = (lat: number) => Math.max(Math.min(lat, 85), -85);
 
+// Pad a number to 2 digits with leading zero (e.g., 4 -> "04")
 export const pad = (n: number) => String(n).padStart(2, "0");
 
+// Compute the great-circle distance between two points using the haversine formula
+// Inputs: lat1, lon1, lat2, lon2 in degrees
+// Returns: distance in meters
 export function haversine(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number
 ): number {
-  const R = 6371e3;
+  const R = 6371e3; // Earth radius in meters
   const toRad = (deg: number) => (deg * Math.PI) / 180;
 
   const lat1Rad = toRad(lat1);
@@ -30,6 +35,9 @@ export function haversine(
   return R * c;
 }
 
+// Normalize a sequence of coordinates so longitudes are continuous
+// - Handles wraparound at ±180°
+// - Clamps latitudes to valid range (-85° to 85°)
 export function normailzeLineCoords(
   coords: [number, number][]
 ): [number, number][] {
@@ -61,6 +69,8 @@ export function normailzeLineCoords(
   return adjusted;
 }
 
+// Subdivide a line segment into smaller segments not exceeding maxStepKm
+// - Returns an array of interpolated coordinates between start and end
 export function subdivideSegment(
   start: [number, number],
   end: [number, number],

@@ -1,10 +1,3 @@
-export type BalloonPoint = {
-  lat: number;
-  lon: number;
-  alt: number;
-  index: number;
-};
-
 export type FireRecord = {
   acq_date: string;
   acq_time: string;
@@ -23,5 +16,3 @@ export type FireRecord = {
 
   timestamp: number;
 };
-
-export type FC = GeoJSON.FeatureCollection<GeoJSON.Point>;

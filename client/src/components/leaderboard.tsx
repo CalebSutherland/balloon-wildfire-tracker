@@ -1,3 +1,22 @@
+// Displays the leaderboard of balloons ranked by total distance traveled or max altitude.
+//
+// Props:
+// - distances: Map of balloon index to total distance traveled (meters)
+// - maxAltitudes: Map of balloon index to max altitude (km)
+// - selectBalloonByIndex: Callback to select a balloon when clicking "Select"
+// - playing: Boolean indicating whether animation is playing
+// - setPlaying: Function to toggle play/pause state
+//
+// Features:
+// - Top 3 balloons are displayed on a podium with colored BalloonIcons
+// - Users can choose to sort by total distance or max altitude using a dropdown
+// - Users can toggle ascending/descending sort order
+// - Table shows rank, balloon ID, and stat (distance in km or max altitude)
+// - "Select" button scrolls to and selects a balloon on the map
+// - Skeleton entries are displayed if no balloons are available yet
+// - "Load More" button loads additional leaderboard entries incrementally
+// - Stops animation automatically if leaderboard is being loaded or interacted with
+
 import { useEffect, useState } from "react";
 import {
   Table,
