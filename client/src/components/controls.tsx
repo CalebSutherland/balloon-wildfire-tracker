@@ -18,7 +18,7 @@ export function Controls({
     <div
       style={{
         position: "absolute",
-        top: 40,
+        top: 145,
         left: 40,
         display: "flex",
         gap: "0.8rem",

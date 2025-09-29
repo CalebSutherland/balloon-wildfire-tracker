@@ -5,11 +5,7 @@ import { calculateBalloonStats } from "@/utils/balloon-stats";
 export function getBalloons() {
   const [balloons, setBalloons] = useState<Record<string, BalloonPoint[]>>({});
   const [distances, setDistances] = useState<Record<number, number>>({});
-  const [maxDistBalloon, setMaxDistBalloon] = useState<number | null>(null);
-  const [maxDist, setMaxDist] = useState(0);
   const [maxAltitudes, setMaxAltitudes] = useState<Record<number, number>>({});
-  const [maxAltBalloon, setMaxAltBalloon] = useState<number | null>(null);
-  const [maxAlt, setMaxAlt] = useState(0);
   const [balloonError, setBalloonError] = useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -34,21 +30,10 @@ export function getBalloons() {
         }
         setBalloons(objData);
 
-        const {
-          distMap,
-          maxDistIndex,
-          maxDistValue,
-          maxAltMap,
-          maxAltIndex,
-          maxAltValue,
-        } = calculateBalloonStats(objData);
+        const { distMap, maxAltMap } = calculateBalloonStats(objData);
 
         setDistances(distMap);
-        setMaxDistBalloon(maxDistIndex);
-        setMaxDist(maxDistValue);
         setMaxAltitudes(maxAltMap);
-        setMaxAltBalloon(maxAltIndex);
-        setMaxAlt(maxAltValue);
       })
       .catch(console.error);
   }, []);
@@ -56,11 +41,7 @@ export function getBalloons() {
   return {
     balloons,
     distances,
-    maxDistBalloon,
-    maxDist,
     maxAltitudes,
-    maxAltBalloon,
-    maxAlt,
     balloonError,
   };
 }

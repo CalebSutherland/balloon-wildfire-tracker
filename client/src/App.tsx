@@ -46,6 +46,8 @@ function App() {
   if (!balloonError) {
     return (
       <div className="app-wrapper">
+        <h1 className="header">WindBorne Fire Tracker</h1>
+
         <div className="display-wrapper">
           <div className="map-wrapper">
             <Controls
@@ -86,20 +88,6 @@ function App() {
           playing={playing}
           setPlaying={setPlaying}
         />
-
-        {/* <div style={{ color: "white" }}>
-          <h3>Balloon Stats</h3>
-          <span style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <p>
-              Furthest Flight: {maxDist.toFixed(0)}m Balloon #{maxDistBalloon}
-            </p>
-            {maxDistBalloon && (
-              <button onClick={() => selectBalloonByIndex(maxDistBalloon)}>
-                Select
-              </button>
-            )}
-          </span>
-        </div> */}
       </div>
     );
   } else {
